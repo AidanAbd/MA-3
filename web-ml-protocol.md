@@ -1,6 +1,7 @@
 # Setup
 
 Input: stdin, text mode, line-buffered
+
 Output: stdout, text mode, line-buffered
 
 # Packet Structure
@@ -10,7 +11,7 @@ Single JSON object with a terminating LF.
 ```JS
 {
   "type": "string", // packet type, defines the packet body
-  "id": "int", // unique enough paclet id
+  "id": "int", // unique enough packet id
   "data": "various, optional" // packet body
 }
 ```
@@ -19,6 +20,8 @@ Single JSON object with a terminating LF.
 
 | Code | Message |
 | ---- | ------- |
+| `bad-packet-json` | Received packet that is invalid JSON. |
+| `null-packet` | Received a null packet. |
 | `no-such-packet` | Received packet with invalid type: "${packet}". |
 | `no-such-id` | Received a ${packet_type} for invalid packet with id ${id}. |
 | `missing-protocol-field` | Received a ${packet_type} without the required protocol field ${field_name}. |
@@ -106,6 +109,7 @@ Testing the connection.
 
 ```JS
 "data": {
+  "id": "int", // id of the corresponding ping packet
   "message": "string" // repsonse to a ping
 }
 ```
