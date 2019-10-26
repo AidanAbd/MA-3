@@ -18,7 +18,7 @@ image_dataset = TrainingData.get_dataset()
 dataset_size = len(image_dataset)
 class_to_id = dict()
 class_names = []
-'''
+
 for i in range(len(image_dataset)):
     label = image_dataset[i]['label']
 
@@ -26,17 +26,14 @@ for i in range(len(image_dataset)):
         class_to_id[label] = len(class_to_id)
         class_names.append(label)
 
-    image_dataset[i]['label'] = class_to_id[label]'''
+    image_dataset[i]['label'] = class_to_id[label]
 
 
 dataloader = torch.utils.data.DataLoader(image_dataset, batch_size=4, shuffle=True, num_workers=4)
 
 json.dump(class_names, open("class_names.json", "w"))
 
-for inputs, labels in dataloader:
-    print(inputs.shape)
 
-raise Exception()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def imshow(inp, title=None):
@@ -91,21 +88,20 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             # forward
             # track history if only in train
-            with torch.set_grad_enabled(phase == 'train'):
+            with torch.set_grad_enabled(True):
                 outputs = model(inputs)
                 _, preds = torch.max(outputs, 1)
                 loss = criterion(outputs, labels)
 
                 # backward + optimize only if in training phase
-                if phase == 'train':
-                    loss.backward()
-                    optimizer.step()
+                loss.backward()
+                optimizer.step()
 
             # statistics
             running_loss += loss.item() * inputs.size(0)
             running_corrects += torch.sum(preds == labels.data)
-        if phase == 'train':
-            scheduler.step()
+        
+        scheduler.step()
 
         epoch_loss = running_loss / dataset_sizes[phase]
         epoch_acc = running_corrects.double() / dataset_sizes[phase]
@@ -114,7 +110,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             phase, epoch_loss, epoch_acc))
 
         # deep copy the model
-        if phase == 'val' and epoch_acc > best_acc:
+        if epoch_acc > best_acc:
             best_acc = epoch_acc
             best_model_wts = copy.deepcopy(model.state_dict())
             torch.save(best_model_wts, "models/best_so_far.pt")
@@ -124,7 +120,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -154,7 +149,7 @@ def test_inference(model):
     print(torch.mean(inputs))
     print(preds)
 '''
-
+'''
 def visualize_model(model, num_images=6):
     was_training = model.training
     model.eval()
@@ -179,7 +174,7 @@ def visualize_model(model, num_images=6):
                 if images_so_far == num_images:
                     model.train(mode=was_training)
                     return
-        model.train(mode=was_training)
+        model.train(mode=was_training)'''
 
 
 #model_conv = torchvision.models.squeezenet1_0(pretrained=True)
