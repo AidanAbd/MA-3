@@ -70,7 +70,7 @@ if (sys.argv[2] == 'train'):
             model.train()
             running_loss = 0.0
             running_corrects = 0
-            displayed = False
+            displayed = True if (len(sys.argv) >= 4 and sys.argv[3] == 'nd') else False
 
             # Iterate over data.
             for inputs, labels in dataloader:
