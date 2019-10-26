@@ -153,16 +153,51 @@ def visualize_model(model, num_images=6):
         model.train(mode=was_training)
 
 
-model_conv = torchvision.models.squeezenet1_0(pretrained=True)
-for param in model_conv.parameters():
-    param.requires_grad = False
-print(model_conv)
+#model_conv = torchvision.models.squeezenet1_0(pretrained=True)
+#for param in model_conv.parameters():
+#    param.requires_grad = False
 
 # Parameters of newly constructed modules have requires_grad=True by default
 #num_ftrs = model_conv.classifier.in_features
 #num_ftrs = 512
-model_conv.classifier[1] = nn.Conv2d(512, 2, kernel_size = (1, 1), stride = (1, 1))
+#model_conv.classifier[1] = nn.Conv2d(512, 2, kernel_size = (1, 1), stride = (1, 1))
 
+'''
+class transferred_squeeze(nn.Module):
+
+	def __init__(self):
+		super().__init__()
+
+		self.squeeze_net = torchvision.models.squeezenet1_0(pretrained=True)
+		for param in self.squeeze_net.parameters():
+			param.requires_grad = False
+		self.fc = nn.Linear(1000, 2)
+
+	def forward(self, x):
+
+		squeeze_net_out = self.squeeze_net(x)
+		transfer_out = self.fc(squeeze_net_out)
+		return transfer_out
+'''
+
+#model_conv.classifier.add_module("transpose", transposer())
+#model_conv.classifier.add_module("fc", nn.Linear(4000, 2))
+
+#model_conv = transferred_squeeze()
+
+custom_num_classes = 2
+
+model_conv = torchvision.models.squeezenet1_1(pretrained=True)
+for param in model_conv.parameters():
+    param.requires_grad = False
+
+model_conv.classifier = nn.Sequential(
+    nn.Dropout(p=0.5),
+    nn.Conv2d(512, custom_num_classes, kernel_size=1),
+    nn.ReLU(inplace=True),
+    nn.AvgPool2d(13)
+)
+model_conv.forward = lambda x: model_conv.classifier(model_conv.features(x)).view(x.size(0), custom_num_classes)
 
 model_conv = model_conv.to(device)
 
