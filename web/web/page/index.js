@@ -14,9 +14,6 @@ const ieWarning = [
   ''
 ];
 
-require('../style/normalize.styl');
-require('../style/main.styl');
-
 export default () => {
   return '<!doctype html>' + (pretty ? '\n' : '')+
     <html lang='en'>
