@@ -71,6 +71,41 @@ module.exports = {
             loader: 'stylus-loader'
           }
         ]
+      },
+      {
+        test: /\.css/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name() {
+                if (mode === 'development') {
+                  return '[path][name].css';
+                }
+
+                return '[contenthash].css';
+              },
+            }
+          },
+          {
+            loader: 'extract-loader'
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              // modules: true,
+              sourceMap: true,
+              importLoaders: 1
+            }
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              plugins: () => [
+              ]
+            }
+          }
+        ]
       }
     ]
   }
