@@ -19,7 +19,6 @@ const execFile = util.promisify(child_process.execFile);
 const mkdirp = util.promisify(mkdirpCB);
 
 
-const mode = fs.existsSync('devlock') ? 'development' : 'production';
 const distPath = fs.realpathSync(path.join(__dirname, '../web/dist'));
 
 const app = new Koa();
@@ -105,6 +104,6 @@ app.use(async (ctx, next)=>{
   ];
   await Promise.all(setup);
 
-  app.listen(mode === 'production' ? 80 : 3000);
+  app.listen(3000);
   console.log('listening');
 })();
