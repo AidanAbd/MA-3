@@ -28,7 +28,6 @@ def getFrame(root_dir):
                 continue
             label = str(entry.name)
             basepath = 'data-example/' + label
-            print(basepath)
             for image_name in os.listdir(basepath):
                 if os.path.isfile(os.path.join(basepath, image_name)):
                     temp_frame = {0: image_name, 1: label}
@@ -64,7 +63,7 @@ class CustomDataset(Dataset):
         img_name = os.path.join(img_name, self.frame.iloc[idx, 0])
         image = io.imread(img_name)
         label = self.frame.iloc[idx, 1]
-        sample = {'image': image, 'label': label}
+        sample = (np.array(image), label)
 
         if self.transform:
             sample = self.transform(sample)
@@ -73,12 +72,12 @@ class CustomDataset(Dataset):
 
 
 
-def __main__(root_dir):
+def get_dataset(root_dir = 'data-example/'):
     frame = getFrame(root_dir)
-    dataset = CustomDataset(DataFrame=frame, root_dir='data-example/')
+    dataset = CustomDataset(DataFrame=frame, root_dir=root_dir)
     return dataset
 
-__main__('data-example/')
+#__main__('data-example/')
 
 
 
