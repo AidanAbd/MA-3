@@ -1,14 +1,12 @@
-export const handleWs = (ws) => {
+export const handleWs = (ws, sess) => {
   let packetCounter = 0;
 
-  const send = (type, obj)=>{
-    if (obj.type != null)
-      throw new Error('Packet payload cannot specify packet type.');
-
-    ws.send(JSON.stringify(Object.assign(obj, {
+  const send = (type, data)=>{
+    ws.send(JSON.stringify({
       type: type,
-      id: packetCounter++
-    })));
+      id: packetCounter++,
+      data
+    }));
   };
   const sendAck = (obj)=>{
     send('ack', {id: obj.id});
@@ -37,7 +35,7 @@ export const handleWs = (ws) => {
     });
   };
 
-  ws.on('message', (data) => {
+  ws.on('message', async (data) => {
     let obj = null;
     try {
       obj = JSON.parse(data);
@@ -114,6 +112,14 @@ export const handleWs = (ws) => {
       console.log(`${obj.data.id}: ${obj.data.completeness*100}%`);
 
       sendAck(obj);
+
+      return;
+    }
+    else if (obj.type === 'auth') {
+      const payload = await sess.jwtpayload();
+      send('auth-response', {payload});
+
+      console.log('Auth');
 
       return;
     }

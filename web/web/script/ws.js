@@ -1,37 +1,40 @@
-export const handleWs = (ws) => {
+const errorMessages = {
+  'bad-packet-json': 'Received packet that is invalid JSON.',
+  'null-packet': 'Received a null packet.',
+  'no-such-packet': 'Received packet with invalid type: "${packet}".',
+  'no-such-id': 'Received a ${packet_type} for invalid packet with id ${id}.',
+  'missing-protocol-field': 'Received a ${packet_type} without the required protocol field ${field_name}.',
+  'missing-body-field': 'Received a ${packet_type} without the required body field ${field_name}.',
+  'field-out-of-range': 'Field ${field_name} is unexpectedly not in range ${range_string}.',
+  'field-of-wrong-type': 'Field ${field_name} is of invalid type, expected a ${expected_type}.',
+  'bug': 'Something went wrong on the receiving side. This is a bug.',
+  'wrong-pong': 'Received a pong with the wrong message. Expected: "${message}", not "${wrong_message}".',
+  'path-does-not-exist': '${path} unexpectedly does not exist.',
+  'unexpected-empty-string': 'Field ${field_name} is unexpectedly empty.',
+  'unexpected-class': '"${class}" is not one of previously specified classes.'
+};
+
+const ws = new WebSocket('ws://'+location.host);
+
+let uppy = null;
+export const useUppy = (x) => {
+  uppy = x;
+};
+
+ws.addEventListener('open', () => {
   let packetCounter = 0;
 
-  const send = (type, obj)=>{
-    if (obj.type != null)
-      throw new Error('Packet payload cannot specify packet type.');
-
-    ws.send(JSON.stringify(Object.assign(obj, {
+  const send = (type, data)=>{
+    ws.send(JSON.stringify({
       type: type,
-      id: packetCounter++
-    })));
+      id: packetCounter++,
+      data
+    }));
   };
   const sendAck = (obj)=>{
     send('ack', {id: obj.id});
   };
 
-  const errorMessages = {
-    'bad-packet-json': 'Received packet that is invalid JSON.',
-    'null-packet': 'Received a null packet.',
-    'no-such-packet': 'Received packet with invalid type: "${packet}".',
-    'no-such-id': 'Received a ${packet_type} for invalid packet with id ${id}.',
-    'missing-protocol-field': 'Received a ${packet_type} without the required protocol field ${field_name}.',
-    'missing-body-field': 'Received a ${packet_type} without the required body field ${field_name}.',
-    'field-out-of-range': 'Field ${field_name} is unexpectedly not in range ${range_string}.',
-    'field-of-wrong-type': 'Field ${field_name} is of invalid type, expected a ${expected_type}.',
-    'bug': 'Something went wrong on the receiving side. This is a bug.',
-    'wrong-pong': 'Received a pong with the wrong message. Expected: "${message}", not "${wrong_message}".',
-    'path-does-not-exist': '${path} unexpectedly does not exist.',
-    'unexpected-empty-string': 'Field ${field_name} is unexpectedly empty.',
-    'unexpected-not-directory': '${path} unexpectedly is not a directory.',
-    'unexpected-not-file': '${path} unexpectedly is not a file.',
-    'unexpected-not-file-or-directory': '${path} unexpectedly is not a file or a directory.',
-    'unexpected-class': '"${class}" is not one of previously specified classes.'
-  };
   const sendError = (cause, code, etc)=>{
     send('error', {
       id: cause,
@@ -40,10 +43,10 @@ export const handleWs = (ws) => {
     });
   };
 
-  ws.on('message', (data) => {
+  ws.addEventListener('message', (event) => {
     let obj = null;
     try {
-      obj = JSON.parse(data);
+      obj = JSON.parse(event.data);
     }
     catch (e) {
       sendError('bad-json');
@@ -91,6 +94,9 @@ export const handleWs = (ws) => {
         msg += ` "${obj.data.etc}"`;
 
       console.error(msg);
+
+      sendAck(obj);
+
       return;
     }
     else if (obj.type === 'ping') {
@@ -102,6 +108,9 @@ export const handleWs = (ws) => {
     else if (obj.type === 'pong') {
       if (!requireBodyField(obj, 'message')) return;
       console.log(`Pong! ${obj.data.message}`);
+
+      sendAck(obj);
+
       return;
     }
     else if (obj.type === 'progress') {
@@ -110,16 +119,23 @@ export const handleWs = (ws) => {
 
       console.log(`${obj.data.id}: ${obj.data.completeness*100}%`);
 
+      sendAck(obj);
+
       return;
     }
-    else if (obj.type === 'inference-result') {
-      if (!requireBodyField(obj, 'label')) return;
+    else if (obj.type === 'auth-response') {
+      if (!requireBodyField(obj, 'payload')) return;
 
-      console.log(`Inferred ${obj.data.inference}`);
+      console.log('auth');
+      uppy.setMeta({payload: obj.payload});
+
+      sendAck(obj);
 
       return;
     }
 
     sendError('no-such-packet');
   });
-};
+
+  send('auth');
+});
