@@ -60,7 +60,7 @@ nextBtn.addEventListener('click', () => {
     classTableBody.removeChild(row);
   });
 
-  classNameField.placeholder = `class-${classnum++}`;
+  classNameField.placeholder = `class-${++classnum}`;
   classNameField.value = '';
   uppy.reset();
 });
