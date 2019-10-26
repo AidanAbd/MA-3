@@ -88,6 +88,9 @@ export const handleWs = (ws) => {
         msg += ` "${obj.data.etc}"`;
 
       console.error(msg);
+
+      sendAck(obj);
+
       return;
     }
     else if (obj.type === 'ping') {
@@ -99,6 +102,9 @@ export const handleWs = (ws) => {
     else if (obj.type === 'pong') {
       if (!requireBodyField(obj, 'message')) return;
       console.log(`Pong! ${obj.data.message}`);
+
+      sendAck(obj);
+
       return;
     }
     else if (obj.type === 'progress') {
@@ -107,12 +113,7 @@ export const handleWs = (ws) => {
 
       console.log(`${obj.data.id}: ${obj.data.completeness*100}%`);
 
-      return;
-    }
-    else if (obj.type === 'inference-result') {
-      if (!requireBodyField(obj, 'label')) return;
-
-      console.log(`Inferred ${obj.data.inference}`);
+      sendAck(obj);
 
       return;
     }

@@ -64,7 +64,6 @@ module.exports = {
             loader: 'postcss-loader',
             options: {
               plugins: () => [
-                postcssNormalize()
               ]
             }
           },
