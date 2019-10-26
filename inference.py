@@ -10,7 +10,10 @@ import time
 import os
 import copy
 import json
+import sys
 device = torch.device('cpu')
+
+fp = sys.argv[1] if len(sys.argv) == 2 else 'data-example/'
 
 def load_model(num_classes):
 	custom_num_classes = num_classes
@@ -57,16 +60,20 @@ def inference(model, images):
 	return predicted.numpy()
 
 def post_process(predictions, path):
-	class_names = json.load(open("class_names.json", "r"))
-	image_names = sorted([p for p in os.listdir(path) if '.jpeg' in p])
+	is_letter = lambda c: ord(c.lower()) >= ord('a') and ord(c.lower()) <= ord('z')
+	image_names = sorted([p for p in os.listdir(path) if is_letter(p[0])])
 
 	processed = dict()
+	correct = 0
 	for img_name, p in zip(image_names, predictions):
 		processed[img_name] = class_names[p]
+		if (class_names[p].lower() in img_name.lower()):
+			correct +=1
+	print(f"ACCURACY: {correct * 100 / len(image_names):.2f}%")
 	return processed
 
-
-model = load_model(2)
-images = load_data('data-example/test')
+class_names = json.load(open("class_names.json", "r"))
+model = load_model(len(class_names))
+images = load_data(fp + 'test')
 predictions = inference(model, images)
-print(post_process(predictions, 'data-example/test/unlabeled'))
+print(post_process(predictions, fp + 'test/unlabeled'))

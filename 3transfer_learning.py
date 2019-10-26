@@ -12,14 +12,19 @@ import copy
 import json
 import sys
 
-data_transform = transforms.Compose([
-        transforms.RandomResizedCrop(224),
-        transforms.RandomHorizontalFlip(),
+data_transform = transforms.Compose(
+        [transforms.RandomApply([
+        transforms.ColorJitter(brightness = 0.2, contrast = 0.2, saturation = 0.2, hue = 0.01),
+        transforms.RandomRotation(50),
+        transforms.RandomResizedCrop(224, scale = (0.4, 1.0)),
+        transforms.RandomHorizontalFlip()], p = 0.4),
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
-data_dir = 'data-example/train'
+fp = sys.argv[1] if len(sys.argv) > 1 else 'data-example/'
+data_dir = fp + 'train'
 image_dataset = datasets.ImageFolder(data_dir, data_transform)
 dataloader = torch.utils.data.DataLoader(image_dataset, batch_size=4, shuffle=True, num_workers=4)
 
@@ -56,10 +61,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
-    if (len(sys.argv) == 1 or sys.argv[1] == "new"):
-        torch.save(best_model_wts, "models/best_so_far.pt")
-    elif (sys.argv[1] == "prev"):
-        model.load_state_dict(torch.load('models/best_so_far.pt'))
+    torch.save(best_model_wts, "models/best_so_far.pt")
     best_acc = 0.0
 
     #test_inference(model)
@@ -78,6 +80,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             inputs = inputs.to(device)
             labels = labels.to(device)
 
+            imgs = torchvision.utils.make_grid(inputs)
+
             # zero the parameter gradients
             optimizer.zero_grad()
 
@@ -87,6 +91,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 outputs = model(inputs)
                 _, preds = torch.max(outputs, 1)
                 loss = criterion(outputs, labels)
+
+                imshow(imgs, title=[class_names[x] for x in preds])
 
                 # backward + optimize only if in training phase
                 
@@ -205,7 +211,7 @@ class transferred_squeeze(nn.Module):
 
 #model_conv = transferred_squeeze()
 
-custom_num_classes = 2
+custom_num_classes = len(class_names)
 
 model_conv = torchvision.models.squeezenet1_1(pretrained=True)
 for param in model_conv.parameters():
