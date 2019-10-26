@@ -2,6 +2,8 @@ import fs from 'fs-extra';
 import path from 'path';
 import util from 'util';
 import child_process from 'child_process';
+import mkdirpCB from 'mkdirp';
+import del from 'del';
 
 import Koa from 'koa';
 import koaBody from 'koa-body';
@@ -14,8 +16,10 @@ import {handleWs} from './ws';
 import {getSession, newSession} from './user-session';
 
 const execFile = util.promisify(child_process.execFile);
+const mkdirp = util.promisify(mkdirpCB);
 
 
+const mode = fs.existsSync('devlock') ? 'development' : 'production';
 const distPath = fs.realpathSync(path.join(__dirname, '../web/dist'));
 
 const app = new Koa();
@@ -24,7 +28,12 @@ app.use(new KoaLogger());
 app.use(websocket());
 app.use(compress());
 
-const koaBodyMW = koaBody({multipart: true});
+const koaBodyMW = koaBody({
+  multipart: true,
+  formidable: {
+    keepExtensions: true
+  }
+});
 
 app.use(async (ctx, next)=>{
   if (ctx.ws != null) {
@@ -46,20 +55,11 @@ app.use(async (ctx, next)=>{
 
     const req = ctx.request;
 
-    console.log(req.body);
-
     if (req.body.payload == null) {
-      console.error('No payload');
-      ctx.status = 400;
-      return;
-    }
-    if (req.body.label == null) {
-      console.error('No label');
       ctx.status = 400;
       return;
     }
     if (req.files == null) {
-      console.error('No files');
       ctx.status = 400;
       return;
     }
@@ -71,8 +71,10 @@ app.use(async (ctx, next)=>{
       return;
     }
 
-    console.log(req.files['files[]']);
-    // await fs.promise.rename();
+    await mkdirp(sess.workingSetPath);
+
+    const f = req.files['files[]'];
+    await fs.promises.rename(f.path, sess.filePathFor(f.name));
 
     ctx.status = 200;
 
@@ -88,8 +90,21 @@ app.use(async (ctx, next)=>{
 });
 
 (async () => {
-  await execFile('./rsa-gen.sh');
+  const setup = [
+    (async () => {
+      try {
+        await del('./uploads');
+      }
+      catch (e)
+      {
+        console.log(e);
+        /* ignore ENOENT */
+      }
+    })(),
+    execFile('./rsa-gen.sh')
+  ];
+  await Promise.all(setup);
 
-  app.listen(3000);
+  app.listen(mode === 'production' ? 80 : 3000);
   console.log('listening');
 })();

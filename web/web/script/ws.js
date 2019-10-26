@@ -21,6 +21,8 @@ export const useUppy = (x) => {
   uppy = x;
 };
 
+export let setWorkingsetClassName = null;
+
 ws.addEventListener('open', () => {
   let packetCounter = 0;
 
@@ -127,7 +129,7 @@ ws.addEventListener('open', () => {
       if (!requireBodyField(obj, 'payload')) return;
 
       console.log('auth');
-      uppy.setMeta({payload: obj.payload});
+      uppy.setMeta({payload: obj.data.payload});
 
       sendAck(obj);
 
@@ -138,4 +140,8 @@ ws.addEventListener('open', () => {
   });
 
   send('auth');
+
+  setWorkingsetClassName = (val) => {
+    send('working-set-class', {label: val});
+  };
 });

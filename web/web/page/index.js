@@ -45,13 +45,31 @@ export default () => {
           </div>
           <div class='row justify-content-center'>
             <div class='col-sm-2'>
-              <label for='class-name'>Class label:</label>
+              <label>Class label:</label>
               <div class='input-group'>
-                <input id='class-name' class='form-control' type='text' placeholder='class-1'/>
+                <input id='class-name-in' class='form-control' type='text' placeholder='class-1'/>
               </div>
+              <button type='button' class='btn btn-primary' id='next-btn'>Next</button>
             </div>
             <div class='col-sm-4'>
               <div id='drag-drop-area'/>
+            </div>
+          </div>
+        </div>
+        <div class='modal fade' id='no-class-name-modal'>
+          <div class='modal-dialog'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <h5 class='modal-title'>Pl</h5>
+                <button type='button' class='close' data-dismiss='modal'>&times;</button>
+              </div>
+              <div class='modal-body'>
+                <label for='class-name'>Class label:</label>
+                <div class='input-group'>
+                  <input id='class-name' class='form-control' type='text' placeholder='class-1'/>
+                </div>
+                <button type='button' class='btn btn-primary' id='no-class-name-modal-submit'>Submit</button>
+              </div>
             </div>
           </div>
         </div>
