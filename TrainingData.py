@@ -16,33 +16,26 @@ warnings.filterwarnings("ignore")
 plt.ion()  # interactive mode
 
 ######### TEST ENVIORMENT ###############
-
 # exit()
 #########################################
 
 
-frame = pd.DataFrame(columns=[0,1])
+def getFrame(root_dir):
+    frame = pd.DataFrame(columns=[0,1])
+    with os.scandir('data-example/') as entries:
+        for entry in entries:
+            if str(entry.name) == '.DS_Store' or str(entry.name) == 'stdin.json':
+                continue
+            label = str(entry.name)
+            basepath = 'data-example/' + label
+            print(basepath)
+            for image_name in os.listdir(basepath):
+                if os.path.isfile(os.path.join(basepath, image_name)):
+                    temp_frame = {0: image_name, 1: label}
+                    frame = frame.append(temp_frame, ignore_index=True)
+    return frame
 
-with os.scandir('data-example/') as entries:
-    for entry in entries:
-        if str(entry.name) == '.DS_Store':
-            continue
-        label = str(entry.name)
-        basepath = 'data-example/' + label
-        print(basepath)
-        for image_name in os.listdir(basepath):
-            if os.path.isfile(os.path.join(basepath, image_name)):
-                temp_frame = {0: image_name, 1: label}
-                frame = frame.append(temp_frame, ignore_index=True)
 
-print(frame)
-
-n = len(frame)
-img_name = frame.iloc[0, 0]
-label = frame.iloc[0, 1]
-
-print('Image name: {}'.format(img_name))
-print('Image Label: {}'.format(label))
 
 
 class CustomDataset(Dataset):
@@ -80,22 +73,34 @@ class CustomDataset(Dataset):
 
 
 
-def __main__(frame, root_dir):
+def __main__(root_dir):
+    frame = getFrame(root_dir)
     dataset = CustomDataset(DataFrame=frame, root_dir='data-example/')
+    return dataset
 
-__main__(frame, 'data-example/')
-
-
-
+__main__('data-example/')
 
 
 
-### Printing Bullshit aka. testing
+
+### Printing Random bullshit aka. testing
 """
+def show_image(image):
+    #   Show image
+    plt.imshow(image)
+    plt.pause(0.01)  # pause a bit so that plots are updated
+
 fig = plt.figure()
 
-for i in range(len(frame)):
+for i in range(3):
     sample = dataset[i]
+    print(i, sample['image'].shape, sample['label'])
 
-    print(i, sample['image'], sample['label'])
+    ax = plt.subplot(1, 4, i + 1)
+    plt.tight_layout()
+    ax.set_title('Label: {}'.format(sample['label']))
+    ax.axis('off')
+    show_image(sample['image'])
+
+    time.sleep(3)
 """
