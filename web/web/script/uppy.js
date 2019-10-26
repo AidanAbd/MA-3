@@ -1,6 +1,6 @@
 import Uppy from '@uppy/core';
 import Dashboard from '@uppy/dashboard';
-import Webcam from '@uppy/Webcam';
+import Webcam from '@uppy/webcam';
 import XHRUpload from '@uppy/xhr-upload';
 
 export const uppy = Uppy({
