@@ -5,77 +5,114 @@ import {dom} from '../util/webDom';
 import * as ws from './ws';
 import {uppy} from './uppy';
 
-ws.useUppy(uppy);
+const addClassErrorAlert = document.getElementById('add-class-error-alert');
+const startTrainingErrorAlert = document.getElementById('start-training-error-alert');
 
-document.addEventListener('DOMContentLoaded', () => {
+const showAddClassError = (err) => {
+  addClassErrorAlert.innerText = err;
+  $('#add-class-error-alert').removeClass('d-none');
+};
 
-});
+const showStartTrainingError = (err) => {
+  startTrainingErrorAlert.innerText = err;
+  $('#start-training-error-alert').removeClass('d-none');
+};
 
-const classNameField = document.getElementById('class-name-in');
-const nextBtn = document.getElementById('next-btn');
-const submitBtn = document.getElementById('train-btn');
-const classTableBody = document.getElementById('class-table-body');
-const errorAlert = document.getElementById('error-alert');
+try {
+  ws.useUppy(uppy);
 
-let classnum = 1;
+  document.addEventListener('DOMContentLoaded', () => {
 
-nextBtn.addEventListener('click', () => {
-  const fs = uppy.getFiles();
-
-  if (classNameField.value === '') {
-    errorAlert.innerText = 'No class label specified';
-    $('#error-alert').removeClass('d-none');
-    return;
-  }
-
-  if (fs.length === 0) {
-    errorAlert.innerText = 'No files uploaded';
-    $('#error-alert').removeClass('d-none');
-    return;
-  }
-
-  const us = uppy.getState();
-  console.log(us);
-  if (
-    Object.keys(us.currentUploads).length !== 0 ||
-    us.totalProgress !== 100
-  ) {
-    errorAlert.innerText = 'File upload incomplete';
-    $('#error-alert').removeClass('d-none');
-    return;
-  }
-
-  $('#error-alert').addClass('d-none');
-  ws.setWorkingsetClassName(classNameField.value);
-
-  let totalSize = 0;
-  for (const f of fs) {
-    totalSize += f.size;
-  }
-
-  const closeBtn = <button type='button' class='close'>&times;</button>.el;
-  const className = classNameField.value;
-  const row =
-    <tr>
-      <td>{closeBtn}</td>
-      <td>{className}</td>
-      <td>{String(fs.length)}</td>
-      <td>{prettyBytes(totalSize)}</td>
-    </tr>.el;
-
-  classTableBody.appendChild(row);
-  closeBtn.addEventListener('click', () => {
-    classTableBody.removeChild(row);
-    ws.removeClass(className);
   });
 
-  classNameField.placeholder = `class-${++classnum}`;
-  classNameField.value = '';
-  uppy.reset();
-});
+  const classNameField = document.getElementById('class-name-in');
+  const nextBtn = document.getElementById('next-btn');
+  const submitBtn = document.getElementById('train-btn');
+  const classTableBody = document.getElementById('class-table-body');
+  const sampleCollector = document.getElementById('sample-collector');
 
-submitBtn.addEventListener('click', () => {
-  ws.startTraining();
-});
+  let classnum = 1;
+  let classAmount = 0;
 
+  nextBtn.addEventListener('click', () => {
+    try {
+      const fs = uppy.getFiles();
 
+      if (classNameField.value === '') {
+        showAddClassError('No class label specified');
+        return;
+      }
+
+      if (fs.length === 0) {
+        showAddClassError('No files uploaded');
+        return;
+      }
+
+      const us = uppy.getState();
+      console.log(us);
+      if (
+        Object.keys(us.currentUploads).length !== 0 ||
+        us.totalProgress !== 100
+      ) {
+        showAddClassError('File upload incomplete');
+        return;
+      }
+
+      $('#add-class-error-alert').addClass('d-none');
+      ws.setWorkingsetClassName(classNameField.value);
+
+      let totalSize = 0;
+      for (const f of fs) {
+        totalSize += f.size;
+      }
+
+      const closeBtn = <button type='button' class='close'>&times;</button>.el;
+      const className = classNameField.value;
+      const row =
+        <tr>
+          <td>{closeBtn}</td>
+          <td>{className}</td>
+          <td>{String(fs.length)}</td>
+          <td>{prettyBytes(totalSize)}</td>
+        </tr>.el;
+
+      classTableBody.appendChild(row);
+      closeBtn.addEventListener('click', () => {
+        classTableBody.removeChild(row);
+        ws.removeClass(className);
+        --classAmount;
+      });
+
+      classNameField.placeholder = `class-${++classnum}`;
+      classNameField.value = '';
+      uppy.reset();
+      ++classAmount;
+    }
+    catch (e) {
+      showAddClassError('Internal error');
+      showStartTrainingError('Internal error');
+    }
+  });
+
+  submitBtn.addEventListener('click', () => {
+    try {
+      if (classAmount < 2) {
+        showStartTrainingError('Need at least 2 classes to start training');
+        return;
+      }
+
+      ws.startTraining();
+      $('#start-training-error-alert').addClass('d-none');
+
+      sampleCollector.className = 'd-none';
+    }
+    catch (e) {
+      showAddClassError('Internal error');
+      showStartTrainingError('Internal error');
+    }
+  });
+}
+catch(e) {
+  showAddClassError('Internal error');
+  showStartTrainingError('Internal error');
+}

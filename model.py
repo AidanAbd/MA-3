@@ -26,7 +26,7 @@ if (sys.argv[2] == 'train'):
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
     fp = sys.argv[1]
-    data_dir = fp + 'train'
+    data_dir = fp
     image_dataset = datasets.ImageFolder(data_dir, data_transform)
     dataloader = torch.utils.data.DataLoader(image_dataset, batch_size=4, shuffle=True, num_workers=4)
 
@@ -156,7 +156,7 @@ if (sys.argv[2] == 'train'):
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=3, gamma=0.5)
 
     model_conv = train_model(model_conv, criterion, optimizer_conv,
-                             exp_lr_scheduler, num_epochs=1)
+                             exp_lr_scheduler, num_epochs=25)
 elif (sys.argv[2] == 'inference'):
 
     device = torch.device('cpu')
@@ -232,7 +232,7 @@ elif (sys.argv[2] == 'inference'):
     model = load_model(len(class_names))
     images = load_data(fp)
     predictions= inference(model, images)
-    print(post_process(predictions, fp + 'test'))
+    print(post_process(predictions, fp))
 
 
 

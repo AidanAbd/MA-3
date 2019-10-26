@@ -823,6 +823,14 @@
   dependencies:
     lodash.throttle "^4.1.1"
 
+"@uppy/webcam@^1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@uppy/webcam/-/webcam-1.3.1.tgz#e9bb68eee6a3cdff11888705b7d35ab0a655e09b"
+  integrity sha512-9wo2cC2Vw1Rqc7IL1C8btT4BiB5DouLbIKJM/oSgmQ8SatwytMDPtAA0qgD0i/cC6rmGZh1J6W7IdnstJFoUSA==
+  dependencies:
+    "@uppy/utils" "^2.0.0"
+    preact "8.2.9"
+
 "@uppy/xhr-upload@^1.3.2":
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/@uppy/xhr-upload/-/xhr-upload-1.3.2.tgz#beca029d2fdd4b6907fb1d35304bfd302c3e6563"

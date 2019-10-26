@@ -1,4 +1,8 @@
 export const handleWs = (ws, sess) => {
+  ws.on('close', async () => {
+    await sess.cleanup();
+  });
+
   let packetCounter = 0;
 
   const send = (type, data)=>{

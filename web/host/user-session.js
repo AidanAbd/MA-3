@@ -6,10 +6,6 @@ import child_process from 'child_process';
 import del from 'del';
 import jwt from 'jsonwebtoken';
 
-const spawn = util.promisify(child_process.spawn);
-
-const pyMLPath = './ml/main.py';
-
 const sign = util.promisify(jwt.sign);
 const verify = (payload, key) => {
   return new Promise((resolve, reject) => {
@@ -62,12 +58,38 @@ class Session {
   }
 
   async startTraining() {
-    // this.cp = spawn(`python ${pyMLPath} ${this.labeledPathPrefix}`);
-    console.log('beep boop training');
+    this.cp = await child_process.spawn(
+      'python3',
+      [
+        'model.py',
+        path.join('..', this.labeledPathPrefix),
+        'train',
+        this.id,
+        'nd'
+      ],
+      {
+        cwd: './ml'
+      }
+    );
+    this.cp.stderr.pipe(process.stderr);
+    this.cp.stdout.pipe(process.stdout);
+    this.cp.on('exit', (code) => {
+      console.log('DONE '+code);
+    });
   }
 
   async removeClass(label) {
     await del(this.classPath(label));
+  }
+
+  async cleanup() {
+    const actions = [
+      del(path.join('./ml', 'class_names', this.id+'_classes.json')),
+      del(path.join('./ml', 'models', this.id+'_params.pt')),
+      del(path.join('./uploads', 'sess-'+this.id))
+    ];
+
+    await Promise.all(actions);
   }
 }
 

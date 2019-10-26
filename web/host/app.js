@@ -108,6 +108,8 @@ app.use(async (ctx, next)=>{
         /* ignore ENOENT */
       }
     })(),
+    del(path.join('./ml', 'class_names', '*')),
+    del(path.join('./ml', 'models', '*')),
     execFile('./rsa-gen.sh')
   ];
   await Promise.all(setup);
