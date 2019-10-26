@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import time
 import os
 import copy
+import json
 
 data_transforms = {
     'train': transforms.Compose([
@@ -46,6 +47,8 @@ test_loader = torch.utils.data.DataLoader(test_images, batch_size=len(test_image
 dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
 class_names = image_datasets['train'].classes
 
+json.dump(class_names, open("class_names.json", "w"))
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def imshow(inp, title=None):
@@ -76,7 +79,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     torch.save(best_model_wts, "models/best_so_far")
     best_acc = 0.0
 
-    test_inference(model)
+    #test_inference(model)
 
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -139,7 +142,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     # load best model weights
     model.load_state_dict(best_model_wts)
     return model
-
+'''
 def test_inference(model):
     
     #for inputs, labels in test_loader:
@@ -163,6 +166,7 @@ def test_inference(model):
     time.sleep(1)
     print(torch.mean(inputs))
     print(preds)
+'''
 
 def visualize_model(model, num_images=6):
     was_training = model.training
