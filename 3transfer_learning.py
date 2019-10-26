@@ -74,13 +74,15 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
         model.train()
         running_loss = 0.0
         running_corrects = 0
+        displayed = False
 
         # Iterate over data.
         for inputs, labels in dataloader:
             inputs = inputs.to(device)
             labels = labels.to(device)
 
-            imgs = torchvision.utils.make_grid(inputs)
+            if (not displayed):
+                imgs = torchvision.utils.make_grid(inputs)
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -92,7 +94,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 _, preds = torch.max(outputs, 1)
                 loss = criterion(outputs, labels)
 
-                imshow(imgs, title=[class_names[x] for x in preds])
+                if (not displayed):
+                    imshow(imgs, title=[class_names[x] for x in preds])
+                    displayed = True
 
                 # backward + optimize only if in training phase
                 

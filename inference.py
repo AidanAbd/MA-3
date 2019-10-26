@@ -57,7 +57,11 @@ def inference(model, images):
 	model.eval()
 	outputs = model(images)
 	_, predicted = torch.max(outputs, 1)
-	return predicted.numpy()
+	exp_outputs = np.exp(outputs.detach().numpy())
+	normed_outputs = exp_outputs / np.sum(exp_outputs, axis = 1, keepdims = True)
+	print(normed_outputs)
+	confidences = [normed_outputs[i][predicted[i]] for i in range(len(images))]
+	return {"classes": predicted.numpy(), "confidences": confidences}
 
 def post_process(predictions, path):
 	is_letter = lambda c: ord(c.lower()) >= ord('a') and ord(c.lower()) <= ord('z')
@@ -65,15 +69,20 @@ def post_process(predictions, path):
 
 	processed = dict()
 	correct = 0
-	for img_name, p in zip(image_names, predictions):
+	correct_conf = 0
+	for img_name, p, c in zip(image_names, predictions["classes"], predictions["confidences"]):
 		processed[img_name] = class_names[p]
 		if (class_names[p].lower() in img_name.lower()):
-			correct +=1
+			correct += 1
+			correct_conf += c
 	print(f"ACCURACY: {correct * 100 / len(image_names):.2f}%")
+	print(f"AVG CORRECT CONFIDENCE: {correct_conf * 100 / correct:.2f}%")
 	return processed
 
 class_names = json.load(open("class_names.json", "r"))
 model = load_model(len(class_names))
 images = load_data(fp + 'test')
-predictions = inference(model, images)
+predictions= inference(model, images)
 print(post_process(predictions, fp + 'test/unlabeled'))
+
+
