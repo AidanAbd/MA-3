@@ -46,6 +46,10 @@ class Session {
     return path.join(this.workingSetPath, name);
   }
 
+  setWS(ws) {
+    this.ws = ws;
+  }
+
   async jwtpayload() {
     if (this.jwt == null)
       this.jwt = await sign({id: this.id}, privateKey, {algorithm: 'RS256'});
@@ -72,9 +76,19 @@ class Session {
       }
     );
     this.cp.stderr.pipe(process.stderr);
-    this.cp.stdout.pipe(process.stdout);
-    this.cp.on('exit', (code) => {
-      console.log('DONE '+code);
+    this.cp.stdout.on('data', (d) => {
+      const args = d.toString().trim().split(' ');
+
+      if (args[0] === 'epoch') {
+        this.ws.sendProgress( parseInt(args[1])/parseInt(args[2]) );
+        return;
+      }
+      else if (args[0] === 'done') {
+        this.ws.sendProgress(1);
+        return;
+      }
+
+      console.log(`Got weird response from model.py: "${args.join(' ')}"`);
     });
   }
 

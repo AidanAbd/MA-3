@@ -21,6 +21,11 @@ export const useUppy = (x) => {
   uppy = x;
 };
 
+let progressCb = null;
+export const setProgressCb = (cb) => {
+  progressCb = cb;
+};
+
 export let setWorkingsetClassName = null;
 export let startTraining = null;
 export let removeClass = null;
@@ -53,20 +58,20 @@ ws.addEventListener('open', () => {
       obj = JSON.parse(event.data);
     }
     catch (e) {
-      sendError('bad-json');
+      sendError(obj.id, 'bad-json');
       return;
     }
     if (obj == null) {
-      sendError('null-packet');
+      sendError(obj.id, 'null-packet');
       return;
     }
 
     if (obj.type == null) {
-      sendError('missing-protocol-field', 'type');
+      sendError(obj.id, 'missing-protocol-field', 'type');
       return;
     }
     if (obj.id == null) {
-      sendError('missing-protocol-field', 'id');
+      sendError(obj.id, 'missing-protocol-field', 'id');
       return;
     }
 
@@ -77,7 +82,7 @@ ws.addEventListener('open', () => {
       }
 
       if (packet.data[field] == null) {
-        sendError('missing-body-field', field);
+        sendError(packet.id, 'missing-body-field', field);
         return false;
       }
 
@@ -118,10 +123,9 @@ ws.addEventListener('open', () => {
       return;
     }
     else if (obj.type === 'progress') {
-      if (!requireBodyField(obj, 'id')) return;
       if (!requireBodyField(obj, 'completeness')) return;
 
-      console.log(`${obj.data.id}: ${obj.data.completeness*100}%`);
+      progressCb(obj.data.completeness);
 
       sendAck(obj);
 
@@ -138,7 +142,7 @@ ws.addEventListener('open', () => {
       return;
     }
 
-    sendError('no-such-packet');
+    sendError(obj.id, 'no-such-packet');
   });
 
   send('auth');

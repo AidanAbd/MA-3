@@ -39,19 +39,19 @@ export default () => {
         {{str: ieWarning.join(pretty ? '\n' : '')}}
         <div class='container-fluid'>
           <div class='row'>
-            <div class='col-sm-6 offset-md-3'>
+            <div class='col-md-6 offset-md-3'>
               <h1>Training</h1>
               <hr/>
             </div>
           </div>
           <div id='sample-collector'>
             <div class='row'>
-              <div class='col-sm-6 offset-md-3'>
+              <div class='col-md-6 offset-md-3'>
                 <h2>Add Samples</h2>
               </div>
             </div>
             <div class='row'>
-              <div class='col-sm-2 offset-md-3'>
+              <div class='col-md-2 offset-md-3'>
                 <label>Class label:</label>
                 <div class='input-group'>
                   <input id='class-name-in' class='form-control' type='text' placeholder='class-1'/>
@@ -72,22 +72,36 @@ export default () => {
                   <tbody class='overflow-auto' id='class-table-body'/>
                 </table>
               </div>
-              <div class='col-sm-4'>
+              <div class='col-md-4'>
                 <div id='drag-drop-area'/>
               </div>
             </div>
             <div class='row'>
-              <div class='col-sm-6 offset-md-3'>
+              <div class='col-md-6 offset-md-3'>
                 <hr class='w-100'/>
               </div>
             </div>
           </div>
-          <div class='row justify-content-center'>
-            <button type='button' class='btn btn-primary' id='train-btn'>Start training</button>
-            <div class='alert alert-danger d-none' id='start-training-error-alert'/>
+          <div class='row' id='training-progress-box' class='d-none'>
+            <div class='col-md-6 offset-md-3'>
+              <div class='progress height-3em'>
+                <div class='progress-bar' id='training-progress-bar'/>
+              </div>
+            </div>
           </div>
+          <div id='start-training-box'>
+            <div class='row height-1em'/>
+            <div class='row justify-content-center'>
+              <button type='button' class='btn btn-primary' id='train-btn'>Start training</button>
+            </div>
+            <div class='row height-1em'/>
+            <div class='row justify-content-center'>
+              <div class='alert alert-danger d-none' id='start-training-error-alert'/>
+            </div>
+          </div>
+          <div class='row height-1em'/>
           <div class='row'>
-            <div class='col-sm-6 offset-md-3'>
+            <div class='col-md-6 offset-md-3'>
               <h1>Inference</h1>
               <hr/>
             </div>

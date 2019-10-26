@@ -66,7 +66,7 @@ if (sys.argv[2] == 'train'):
         #test_inference(model)
 
         for epoch in range(num_epochs):
-            print('epoch {} {}'.format(epoch, num_epochs - 1))
+            print('epoch {} {}'.format(epoch+1, num_epochs))
 
             model.train()
             running_loss = 0.0
@@ -109,7 +109,7 @@ if (sys.argv[2] == 'train'):
             epoch_loss = running_loss / dataset_size
             epoch_acc = running_corrects.double() / dataset_size
 
-            print('loss-acc {:.4f} {:.4f}'.format(epoch_loss, epoch_acc))
+            # print('loss-acc {:.4f} {:.4f}'.format(epoch_loss, epoch_acc))
 
             losses.append(epoch_loss)
 
@@ -123,7 +123,8 @@ if (sys.argv[2] == 'train'):
                 break
 
         time_elapsed = time.time() - since
-        print('done {:f} {:4f}'.format(time_elapsed, best_loss))
+        print('done');
+        # print('done {:f} {:4f}'.format(time_elapsed, best_loss))
 
         # load best model weights
         model.load_state_dict(best_model_wts)

@@ -83,7 +83,7 @@ app.use(async (ctx, next)=>{
 
     // await sleep(10000);
 
-    ctx.status = 200;
+    ctx.body = '{}';
 
     return;
   }

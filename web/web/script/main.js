@@ -30,6 +30,9 @@ try {
   const submitBtn = document.getElementById('train-btn');
   const classTableBody = document.getElementById('class-table-body');
   const sampleCollector = document.getElementById('sample-collector');
+  const trainingProgressBar = document.getElementById('training-progress-bar');
+  const trainingProgressBox = document.getElementById('training-progress-box');
+  const startTrainingBox = document.getElementById('start-training-box');
 
   let classnum = 1;
   let classAmount = 0;
@@ -49,7 +52,6 @@ try {
       }
 
       const us = uppy.getState();
-      console.log(us);
       if (
         Object.keys(us.currentUploads).length !== 0 ||
         us.totalProgress !== 100
@@ -91,6 +93,8 @@ try {
     catch (e) {
       showAddClassError('Internal error');
       showStartTrainingError('Internal error');
+
+      throw e;
     }
   });
 
@@ -101,18 +105,28 @@ try {
         return;
       }
 
+      ws.setProgressCb((completeness) => {
+        const str = Math.round(completeness*100)+'%';
+        trainingProgressBar.style.width = str;
+        trainingProgressBar.innerText = str;
+      });
       ws.startTraining();
-      $('#start-training-error-alert').addClass('d-none');
 
       sampleCollector.className = 'd-none';
+      trainingProgressBox.className = '';
+      startTrainingBox.className = 'd-none';
     }
     catch (e) {
       showAddClassError('Internal error');
       showStartTrainingError('Internal error');
+
+      throw e;
     }
   });
 }
 catch(e) {
   showAddClassError('Internal error');
   showStartTrainingError('Internal error');
+
+  throw e;
 }

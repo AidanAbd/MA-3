@@ -45,31 +45,31 @@ export const handleWs = (ws, sess) => {
       obj = JSON.parse(data);
     }
     catch (e) {
-      sendError('bad-json');
+      sendError(obj.id, 'bad-json');
       return;
     }
     if (obj == null) {
-      sendError('null-packet');
+      sendError(obj.id, 'null-packet');
       return;
     }
 
     if (obj.type == null) {
-      sendError('missing-protocol-field', 'type');
+      sendError(obj.id, 'missing-protocol-field', 'type');
       return;
     }
     if (obj.id == null) {
-      sendError('missing-protocol-field', 'id');
+      sendError(obj.id, 'missing-protocol-field', 'id');
       return;
     }
 
     const requireBodyField = (packet, field) => {
       if (packet.data == null) {
-        sendError('missing-protocol-field', 'data');
+        sendError(packet.id, 'missing-protocol-field', 'data');
         return false;
       }
 
       if (packet.data[field] == null) {
-        sendError('missing-body-field', field);
+        sendError(packet.id, 'missing-body-field', field);
         return false;
       }
 
@@ -110,7 +110,6 @@ export const handleWs = (ws, sess) => {
       return;
     }
     else if (obj.type === 'progress') {
-      if (!requireBodyField(obj, 'id')) return;
       if (!requireBodyField(obj, 'completeness')) return;
 
       console.log(`${obj.data.id}: ${obj.data.completeness*100}%`);
@@ -150,6 +149,12 @@ export const handleWs = (ws, sess) => {
       return;
     }
 
-    sendError('no-such-packet');
+    sendError(obj.id, 'no-such-packet');
+  });
+
+  sess.setWS({
+    sendProgress: (completeness) => {
+      send('progress', {completeness});
+    }
   });
 };
