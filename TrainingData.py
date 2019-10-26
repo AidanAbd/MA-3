@@ -63,7 +63,7 @@ class CustomDataset(Dataset):
         img_name = os.path.join(img_name, self.frame.iloc[idx, 0])
         image = io.imread(img_name)
         label = self.frame.iloc[idx, 1]
-        sample = (np.array(image), label)
+        sample = [np.array(image), np.array(int(label))]
 
         if self.transform:
             sample = self.transform(sample)

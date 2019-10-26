@@ -58,7 +58,7 @@ def inference(model, images):
 
 def post_process(predictions, path):
 	class_names = json.load(open("class_names.json", "r"))
-	image_names = sorted([p for p in os.listdir(path) if '.jpg' in p])
+	image_names = sorted([p for p in os.listdir(path) if '.jpeg' in p])
 
 	processed = dict()
 	for img_name, p in zip(image_names, predictions):
@@ -67,6 +67,6 @@ def post_process(predictions, path):
 
 
 model = load_model(2)
-images = load_data('data/hymenoptera_data/test')
+images = load_data('data-example/test')
 predictions = inference(model, images)
-print(post_process(predictions, 'data/hymenoptera_data/test/unlabeled'))
+print(post_process(predictions, 'data-example/test/unlabeled'))

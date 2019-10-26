@@ -11,29 +11,23 @@ import os
 import copy
 import json
 import sys
-import TrainingData
 
-image_dataset = TrainingData.get_dataset()
+data_transform = transforms.Compose([
+        transforms.RandomResizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
 
-dataset_size = len(image_dataset)
-class_to_id = dict()
-class_names = []
-'''
-for i in range(len(image_dataset)):
-    label = image_dataset[i][1]
-
-    if (label not in class_to_id):
-        class_to_id[label] = len(class_to_id)
-        class_names.append(label)
-
-    image_dataset[i][1] = class_to_id[label]
-    print(image_dataset[i][1], class_to_id[label])
-'''
-
+data_dir = 'data-example/train'
+image_dataset = datasets.ImageFolder(data_dir, data_transform)
 dataloader = torch.utils.data.DataLoader(image_dataset, batch_size=4, shuffle=True, num_workers=4)
 
-json.dump(class_names, open("class_names.json", "w"))
 
+dataset_size = len(image_dataset)
+class_names = image_dataset.classes
+
+json.dump(class_names, open("class_names.json", "w"))
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -49,14 +43,14 @@ def imshow(inp, title=None):
         plt.title(title)
     plt.pause(0.001)  # pause a bit so that plots are updated
 
-'''
+
 # Get a batch of training data
 inputs, classes = next(iter(dataloader))
 
 # Make a grid from batch
-out = torchvision.utils.make_grid(inputs)'''
+out = torchvision.utils.make_grid(inputs)
 
-#imshow(out, title=[class_names[x] for x in classes])
+imshow(out, title=[class_names[x] for x in classes])
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     since = time.time()
@@ -74,14 +68,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
+        
         model.train()
-
         running_loss = 0.0
         running_corrects = 0
 
         # Iterate over data.
         for inputs, labels in dataloader:
-            print(labels)
             inputs = inputs.to(device)
             labels = labels.to(device)
 
@@ -96,6 +89,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 loss = criterion(outputs, labels)
 
                 # backward + optimize only if in training phase
+                
                 loss.backward()
                 optimizer.step()
 
@@ -105,11 +99,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
         
         scheduler.step()
 
-        epoch_loss = running_loss / dataset_sizes[phase]
-        epoch_acc = running_corrects.double() / dataset_sizes[phase]
+        epoch_loss = running_loss / dataset_size
+        epoch_acc = running_corrects.double() / dataset_size
 
-        print('{} Loss: {:.4f} Acc: {:.4f}'.format(
-            phase, epoch_loss, epoch_acc))
+        print('Loss: {:.4f} Acc: {:.4f}'.format(epoch_loss, epoch_acc))
 
         # deep copy the model
         if epoch_acc > best_acc:
@@ -122,6 +115,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
+    print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -176,8 +170,8 @@ def visualize_model(model, num_images=6):
                 if images_so_far == num_images:
                     model.train(mode=was_training)
                     return
-        model.train(mode=was_training)'''
-
+        model.train(mode=was_training)
+'''
 
 #model_conv = torchvision.models.squeezenet1_0(pretrained=True)
 #for param in model_conv.parameters():
