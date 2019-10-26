@@ -34,7 +34,8 @@ if (sys.argv[2] == 'train'):
     dataset_size = len(image_dataset)
     class_names = image_dataset.classes
 
-    json.dump(class_names, open("class_names.json", "w"))
+    class_names_path = f"class_names/{sys.argv[3]}_classes.json"
+    json.dump(class_names, open(class_names_path, "w"))
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -168,6 +169,7 @@ elif (sys.argv[2] == 'inference'):
     device = torch.device('cpu')
 
     load_path = f"models/{sys.argv[3]}_params.pt"
+    class_names_path = f"class_names/{sys.argv[3]}_classes.json"
 
     fp = sys.argv[1]
 
@@ -234,7 +236,7 @@ elif (sys.argv[2] == 'inference'):
         print(f"AVG CORRECT CONFIDENCE: {correct_conf * 100 / correct:.2f}%")
         return processed
 
-    class_names = json.load(open("class_names.json", "r"))
+    class_names = json.load(open(class_names_path, "r"))
     model = load_model(len(class_names))
     images = load_data(fp)
     predictions= inference(model, images)
