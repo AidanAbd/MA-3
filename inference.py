@@ -80,8 +80,8 @@ def post_process(predictions, path):
 
 class_names = json.load(open("class_names.json", "r"))
 model = load_model(len(class_names))
-images = load_data(fp + 'test')
+images = load_data(fp)
 predictions= inference(model, images)
-print(post_process(predictions, fp + 'test/unlabeled'))
+print(post_process(predictions, fp + 'test'))
 
 
