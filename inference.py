@@ -59,7 +59,6 @@ def inference(model, images):
 	_, predicted = torch.max(outputs, 1)
 	exp_outputs = np.exp(outputs.detach().numpy())
 	normed_outputs = exp_outputs / np.sum(exp_outputs, axis = 1, keepdims = True)
-	print(normed_outputs)
 	confidences = [normed_outputs[i][predicted[i]] for i in range(len(images))]
 	return {"classes": predicted.numpy(), "confidences": confidences}
 
