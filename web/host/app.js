@@ -80,7 +80,7 @@ app.use(async (ctx, next)=>{
     const f = req.files['files[]'];
     await fs.promises.rename(f.path, sess.filePathFor(f.name));
 
-    await sleep(10000);
+    // await sleep(10000);
 
     ctx.status = 200;
 
