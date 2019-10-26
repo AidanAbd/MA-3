@@ -2,91 +2,100 @@ from __future__ import print_function, division
 import os
 import torch
 import pandas as pd
+import time
+import sys
+import io
 from skimage import io, transform
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-
 # Ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
-
 plt.ion()  # interactive mode
 
-landmarks_frame = pd.read_csv('faces/face_landmarks.csv')
+######### TEST ENVIORMENT ###############
 
-n = 65
-img_name = landmarks_frame.iloc[n, 0]
-landmarks = landmarks_frame.iloc[n, 1:].as_matrix()
-landmarks = landmarks.astype('float').reshape(-1, 2)
+# exit()
+#########################################
+
+
+frame = pd.DataFrame(columns=[0,1])
+
+with os.scandir('data-example/') as entries:
+    for entry in entries:
+        if str(entry.name) == '.DS_Store':
+            continue
+        label = str(entry.name)
+        basepath = 'data-example/' + label
+        print(basepath)
+        for image_name in os.listdir(basepath):
+            if os.path.isfile(os.path.join(basepath, image_name)):
+                temp_frame = {0: image_name, 1: label}
+                frame = frame.append(temp_frame, ignore_index=True)
+
+print(frame)
+
+n = len(frame)
+img_name = frame.iloc[0, 0]
+label = frame.iloc[0, 1]
 
 print('Image name: {}'.format(img_name))
-print('Landmarks shape: {}'.format(landmarks.shape))
-print('First 4 Landmarks: {}'.format(landmarks[:4]))
+print('Image Label: {}'.format(label))
 
-def show_landmarks(image, landmarks):
-    """Show image with landmarks"""
-    plt.imshow(image)
-    plt.scatter(landmarks[:, 0], landmarks[:, 1], s=10, marker='.', c='r')
-    plt.pause(0.001)  # pause a bit so that plots are updated
 
-plt.figure()
-show_landmarks(io.imread(os.path.join('data/faces/', img_name)),
-               landmarks)
-plt.show()
+class CustomDataset(Dataset):
+    """Custom dataset."""
 
-class FaceLandmarksDataset(Dataset):
-    """Face Landmarks dataset."""
-
-    def __init__(self, csv_file, root_dir, transform=None):
+    def __init__(self, DataFrame, root_dir, transform=None):
         """
         Args:
-            csv_file (string): Path to the csv file with annotations.
+            DataFrame (string): Csv file with annotations.
             root_dir (string): Directory with all the images.
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
-        self.landmarks_frame = pd.read_csv(csv_file)
+        self.frame = DataFrame
         self.root_dir = root_dir
         self.transform = transform
 
     def __len__(self):
-        return len(self.landmarks_frame)
+        return len(self.frame)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        img_name = os.path.join(self.root_dir,
-                                self.landmarks_frame.iloc[idx, 0])
+        img_name = os.path.join(self.root_dir, self.frame.iloc[idx, 1])
+        img_name = os.path.join(img_name, self.frame.iloc[idx, 0])
         image = io.imread(img_name)
-        landmarks = self.landmarks_frame.iloc[idx, 1:]
-        landmarks = np.array([landmarks])
-        landmarks = landmarks.astype('float').reshape(-1, 2)
-        sample = {'image': image, 'landmarks': landmarks}
+        label = self.frame.iloc[idx, 1]
+        sample = {'image': image, 'label': label}
 
         if self.transform:
             sample = self.transform(sample)
 
         return sample
 
-face_dataset = FaceLandmarksDataset(csv_file='data/faces/face_landmarks.csv',
-                                    root_dir='data/faces/')
 
+
+def __main__(frame, root_dir):
+    dataset = CustomDataset(DataFrame=frame, root_dir='data-example/')
+
+__main__(frame, 'data-example/')
+
+
+
+
+
+
+### Printing Bullshit aka. testing
+"""
 fig = plt.figure()
 
-for i in range(len(face_dataset)):
-    sample = face_dataset[i]
+for i in range(len(frame)):
+    sample = dataset[i]
 
-    print(i, sample['image'].shape, sample['landmarks'].shape)
-
-    ax = plt.subplot(1, 4, i + 1)
-    plt.tight_layout()
-    ax.set_title('Sample #{}'.format(i))
-    ax.axis('off')
-    show_landmarks(**sample)
-
-    if i == 3:
-        plt.show()
-        break
+    print(i, sample['image'], sample['label'])
+"""
