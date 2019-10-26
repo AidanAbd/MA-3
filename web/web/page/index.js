@@ -30,47 +30,55 @@ export default () => {
 
         <link rel='stylesheet' href={require('@uppy/core/dist/style.css')}/>
         <link rel='stylesheet' href={require('@uppy/dashboard/dist/style.css')}/>
+        <link rel='stylesheet' href={require('../style/main.styl')}/>
 
         <meta name='theme-color' content='#fafafa'/>
       </head>
       <body>
         {{str: ieWarning.join(pretty ? '\n' : '')}}
         <div class='container-fluid'>
-          <div class='row justify-content-center'>
-            <div class='col-sm-6'>
+          <div class='row'>
+            <div class='col-sm-6 offset-md-3'>
               <h1>Training</h1>
               <hr/>
               <h2>Add Samples</h2>
             </div>
           </div>
-          <div class='row justify-content-center'>
-            <div class='col-sm-2'>
+          <div class='row'>
+            <div class='col-sm-2 offset-md-3'>
               <label>Class label:</label>
               <div class='input-group'>
                 <input id='class-name-in' class='form-control' type='text' placeholder='class-1'/>
               </div>
-              <button type='button' class='btn btn-primary' id='next-btn'>Next</button>
+              <div class='height-1em'/>
+              <button type='button' class='w-100 btn btn-primary' id='next-btn'>Add to set</button>
+              <div class='height-1em'/>
+              <div class='alert alert-danger d-none' id='error-alert'>
+                AAAAaa
+              </div>
+              <table class='table table-sm'>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Class</th>
+                    <th>#</th>
+                    <th>Total Size</th>
+                  </tr>
+                </thead>
+                <tbody class='overflow-auto' id='class-table-body'/>
+              </table>
             </div>
             <div class='col-sm-4'>
               <div id='drag-drop-area'/>
             </div>
           </div>
-        </div>
-        <div class='modal fade' id='no-class-name-modal'>
-          <div class='modal-dialog'>
-            <div class='modal-content'>
-              <div class='modal-header'>
-                <h5 class='modal-title'>Pl</h5>
-                <button type='button' class='close' data-dismiss='modal'>&times;</button>
-              </div>
-              <div class='modal-body'>
-                <label for='class-name'>Class label:</label>
-                <div class='input-group'>
-                  <input id='class-name' class='form-control' type='text' placeholder='class-1'/>
-                </div>
-                <button type='button' class='btn btn-primary' id='no-class-name-modal-submit'>Submit</button>
-              </div>
+          <div class='row'>
+            <div class='col-sm-6 offset-md-3'>
+              <hr class='w-100'/>
             </div>
+          </div>
+          <div class='row justify-content-center'>
+            <button type='button' class='btn btn-primary' id='train-btn'>Start training</button>
           </div>
         </div>
 

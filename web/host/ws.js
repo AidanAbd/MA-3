@@ -132,6 +132,13 @@ export const handleWs = (ws, sess) => {
 
       return;
     }
+    else if (obj.type === 'start-training') {
+      await sess.startTraining();
+
+      sendAck(obj);
+
+      return;
+    }
 
     sendError('no-such-packet');
   });

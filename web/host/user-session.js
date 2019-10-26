@@ -1,8 +1,13 @@
 import fs from 'fs';
 import util from 'util';
 import path from 'path';
+import child_process from 'child_process';
 
 import jwt from 'jsonwebtoken';
+
+const spawn = util.promisify(child_process.spawn);
+
+const pyMLPath = './ml/main.py';
 
 const sign = util.promisify(jwt.sign);
 const verify = (payload, key) => {
@@ -53,6 +58,11 @@ class Session {
 
   async setWorkingsetClassName(label) {
     await fs.promise.rename(this.workingSetPath, this.classPath(label));
+  }
+
+  async startTraining() {
+    // this.cp = spawn(`python ${pyMLPath} ${this.labeledPathPrefix}`);
+    console.log('beep boop training');
   }
 }
 

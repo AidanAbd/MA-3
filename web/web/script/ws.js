@@ -22,6 +22,7 @@ export const useUppy = (x) => {
 };
 
 export let setWorkingsetClassName = null;
+export let startTraining = null;
 
 ws.addEventListener('open', () => {
   let packetCounter = 0;
@@ -143,5 +144,9 @@ ws.addEventListener('open', () => {
 
   setWorkingsetClassName = (val) => {
     send('working-set-class', {label: val});
+  };
+
+  startTraining = () => {
+    send('start-training');
   };
 });

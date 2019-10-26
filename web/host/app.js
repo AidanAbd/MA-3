@@ -19,6 +19,11 @@ const execFile = util.promisify(child_process.execFile);
 const mkdirp = util.promisify(mkdirpCB);
 
 
+let sleep = (ms) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+
 const distPath = fs.realpathSync(path.join(__dirname, '../web/dist'));
 
 const app = new Koa();
@@ -74,6 +79,8 @@ app.use(async (ctx, next)=>{
 
     const f = req.files['files[]'];
     await fs.promises.rename(f.path, sess.filePathFor(f.name));
+
+    await sleep(10000);
 
     ctx.status = 200;
 

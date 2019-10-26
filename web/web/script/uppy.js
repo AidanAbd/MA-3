@@ -2,7 +2,9 @@ import Uppy from '@uppy/core';
 import Dashboard from '@uppy/dashboard';
 import XHRUpload from '@uppy/xhr-upload';
 
-export const uppy = Uppy();
+export const uppy = Uppy({
+  autoProceed: true
+});
 
 uppy.use(Dashboard, {
   inline: true,
