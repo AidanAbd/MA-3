@@ -48,15 +48,6 @@ def imshow(inp, title=None):
         plt.title(title)
     plt.pause(0.001)  # pause a bit so that plots are updated
 
-'''
-# Get a batch of training data
-inputs, classes = next(iter(dataloader))
-
-# Make a grid from batch
-out = torchvision.utils.make_grid(inputs)
-
-imshow(out, title=[class_names[x] for x in classes])
-'''
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     since = time.time()
@@ -139,90 +130,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     # load best model weights
     model.load_state_dict(best_model_wts)
     return model
-'''
-def test_inference(model):
-    
-    #for inputs, labels in test_loader:
 
-    (inputs, labels) = iter(test_loader).next()
-
-    inputs = inputs.to(device)
-    labels = labels.to(device)
-
-    outputs = model(inputs)
-    _, preds = torch.max(outputs, 1)
-
-    print(os.listdir("data/hymenoptera_data/test/unlabeled"))
-    #print(os.listdir("data/hymenoptera_data/test/ants"))
-    #print(os.listdir("data/hymenoptera_data/test/bees"))
-    imshow(inputs[0])
-    time.sleep(1)
-    imshow(inputs[1])
-    time.sleep(1)
-    imshow(inputs[2])
-    time.sleep(1)
-    print(torch.mean(inputs))
-    print(preds)
-'''
-'''
-def visualize_model(model, num_images=6):
-    was_training = model.training
-    model.eval()
-    images_so_far = 0
-    fig = plt.figure()
-
-    with torch.no_grad():
-        for i, (inputs, labels) in enumerate(dataloaders['val']):
-            inputs = inputs.to(device)
-            labels = labels.to(device)
-
-            outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)
-
-            for j in range(inputs.size()[0]):
-                images_so_far += 1
-                ax = plt.subplot(num_images//2, 2, images_so_far)
-                ax.axis('off')
-                ax.set_title('predicted: {}'.format(class_names[preds[j]]))
-                imshow(inputs.cpu().data[j])
-
-                if images_so_far == num_images:
-                    model.train(mode=was_training)
-                    return
-        model.train(mode=was_training)
-'''
-
-#model_conv = torchvision.models.squeezenet1_0(pretrained=True)
-#for param in model_conv.parameters():
-#    param.requires_grad = False
-
-# Parameters of newly constructed modules have requires_grad=True by default
-#num_ftrs = model_conv.classifier.in_features
-#num_ftrs = 512
-#model_conv.classifier[1] = nn.Conv2d(512, 2, kernel_size = (1, 1), stride = (1, 1))
-
-'''
-class transferred_squeeze(nn.Module):
-
-	def __init__(self):
-		super().__init__()
-
-		self.squeeze_net = torchvision.models.squeezenet1_0(pretrained=True)
-		for param in self.squeeze_net.parameters():
-			param.requires_grad = False
-		self.fc = nn.Linear(1000, 2)
-
-	def forward(self, x):
-
-		squeeze_net_out = self.squeeze_net(x)
-		transfer_out = self.fc(squeeze_net_out)
-		return transfer_out
-'''
-
-#model_conv.classifier.add_module("transpose", transposer())
-#model_conv.classifier.add_module("fc", nn.Linear(4000, 2))
-
-#model_conv = transferred_squeeze()
 
 custom_num_classes = len(class_names)
 
@@ -246,8 +154,8 @@ criterion = nn.CrossEntropyLoss()
 # opposed to before.
 optimizer_conv = optim.SGD(model_conv.classifier.parameters(), lr=0.001, momentum=0.9)
 
-# Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=7, gamma=0.1)
+# Decay LR by a factor of 0.5 every 3 epochs
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=3, gamma=0.5)
 
 model_conv = train_model(model_conv, criterion, optimizer_conv,
                          exp_lr_scheduler, num_epochs=25)
