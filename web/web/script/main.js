@@ -1,232 +1,133 @@
-const inp = document.getElementById('regex-parser-input');
-const out = document.getElementById('regex-parser-output');
+const errorMessages = {
+  'bad-packet-json': 'Received packet that is invalid JSON.',
+  'null-packet': 'Received a null packet.',
+  'no-such-packet': 'Received packet with invalid type: "${packet}".',
+  'no-such-id': 'Received a ${packet_type} for invalid packet with id ${id}.',
+  'missing-protocol-field': 'Received a ${packet_type} without the required protocol field ${field_name}.',
+  'missing-body-field': 'Received a ${packet_type} without the required body field ${field_name}.',
+  'field-out-of-range': 'Field ${field_name} is unexpectedly not in range ${range_string}.',
+  'field-of-wrong-type': 'Field ${field_name} is of invalid type, expected a ${expected_type}.',
+  'bug': 'Something went wrong on the receiving side. This is a bug.',
+  'wrong-pong': 'Received a pong with the wrong message. Expected: "${message}", not "${wrong_message}".',
+  'path-does-not-exist': '${path} unexpectedly does not exist.',
+  'unexpected-empty-string': 'Field ${field_name} is unexpectedly empty.',
+  'unexpected-class': '"${class}" is not one of previously specified classes.'
+};
 
 const ws = new WebSocket('ws://'+location.host);
 
-const errorMessages = {
-  'proto|recv|bad-json': 'Received bad JSON.',
-  'proto|recv|null-packet': 'Received null.',
-  'proto|recv|typeless-packet': 'Received a packet without a type.',
-  'proto|recv|idless-packet': 'Received a packet without an id.',
-  'proto|recv|alien-packet': 'Received an unknown packet.',
-
-  'regex-parser|recv|null-action': 'Received no action for regex-parser',
-  'regex-parser|recv|alien-action': 'Received unknown action for regex-parser',
-  'regex-parser|recv|res|null-res': 'Received no results from regex-parser.',
-  'regex-parser|recv|err|null-err': 'Received no error from regex-parser.'
-};
+const uppy = Uppy.Core()
+  .use(Uppy.Dashboard, {
+    inline: true,
+    target: '#drag-drop-area'
+  })
+  .use(Uppy.Tus, {endpoint: `http://${location.host}/upload-samples`});
 
 ws.addEventListener('open', () => {
   let packetCounter = 0;
 
-  const send = function (type, obj) {
-    if (obj == null)
-      throw new Error('Packet payload cannot be null.');
+  const send = (type, obj)=>{
     if (obj.type != null)
       throw new Error('Packet payload cannot specify packet type.');
 
     ws.send(JSON.stringify(Object.assign(obj, {
-      '?': type,
+      type: type,
       id: packetCounter++
     })));
   };
-  const sendOk = function (obj) {
-    send('ok', {id: obj.id});
+  const sendAck = (obj)=>{
+    send('ack', {id: obj.id});
   };
-  const sendErr = function (code) {
-    send('err', {
+
+  const sendError = (cause, code, etc)=>{
+    send('error', {
+      id: cause,
       code: code,
-      msg: errorMessages[code]
+      etc: etc == null ? '' : etc
     });
   };
 
-  const sendAction = function (type, action, obj) {
-    if (obj.action != null)
-      throw new Error('Packet payload cannot specify the action.');
-
-    send(type, Object.assign(obj, {action: action}));
-  };
-
-  let oldInpValue = inp.value;
-  inp.addEventListener('keyup', () => {
-    if (inp.value === oldInpValue)
-      return;
-
-    oldInpValue = inp.value;
-
-    sendAction('regex-parser', 'parse', {
-      regex: inp.value
-    });
-  });
-
-  ws.addEventListener('message', (e) => {
-    var obj = null;
+  ws.on('message', (data) => {
+    let obj = null;
     try {
-      obj = JSON.parse(e.data);
+      obj = JSON.parse(data);
     }
-    catch (err) {
-      console.log('ERR: proto|recv|bad-json');
-      console.log(e.data);
-      sendErr('proto|recv|bad-json');
+    catch (e) {
+      sendError('bad-json');
       return;
     }
-
-    var gName = 'RECV: '+obj['?']+'#'+obj.id;
-    console.log(obj);
-    console.groupEnd(gName);
-
     if (obj == null) {
-      sendErr('proto|recv|null-packet');
+      sendError('null-packet');
       return;
     }
 
-    if (obj['?'] == null) {
-      sendErr('proto|recv|typeless-packet');
+    if (obj.type == null) {
+      sendError('missing-protocol-field', 'type');
       return;
     }
     if (obj.id == null) {
-      sendErr('proto|recv|idless-packet');
+      sendError('missing-protocol-field', 'id');
       return;
     }
 
-    if (obj['?'] === 'regex-parser') {
-      if (obj.action == null) {
-        sendErr('regex-parser|recv|null-action');
-        return;
+    const requireBodyField = (packet, field) => {
+      if (packet.data == null) {
+        sendError('missing-protocol-field', 'data');
+        return false;
       }
 
-      if (obj.action === 'res') {
-        if (obj.res == null) {
-          sendErr('regex-parser|recv|res|null-res');
-          return;
-        }
-
-        var visit = function (obj) {
-          var res = document.createElement('div');
-          res.className = 'json-tree-object';
-
-          var labelContainer = document.createElement('div');
-          labelContainer.className = 'json-tree-labelContainer';
-
-          var label = document.createElement('span');
-          label.className = 'json-tree-label';
-
-          var subtrees = document.createElement('div');
-          subtrees.className = 'json-tree-subtrees';
-
-          if (obj['?'] === 'char') {
-            if (obj.escaped)
-              label.innerText = '\\'+obj.x;
-            else
-              label.innerText = obj.x;
-          }
-          else if (obj['?'] === '&')
-            label.innerText = 'EOF';
-          else if (obj['?'] === '.')
-            label.innerText = '.';
-          else if (obj['?'] === '(?:)' ||
-              obj['?'] === '(?=)' ||
-              obj['?'] === '(?!)' ||
-              obj['?'] === '(?<=)' ||
-              obj['?'] === '(?<!)' ||
-              obj['?'] === '()') {
-            label.innerText = obj['?'];
-
-            for (let i = 0; i < obj.x.length; ++i)
-              subtrees.appendChild(visit(obj.x[i]));
-          }
-          else if (obj['?'] === 'a-b') {
-            label.innerText = 'a-b';
-
-            subtrees.appendChild(visit(obj.a));
-            subtrees.appendChild(visit(obj.b));
-          }
-          else if (obj['?'] === '[]') {
-            if (!obj.inverse)
-              label.innerText = '[]';
-            else
-              label.innerText = '[^]';
-
-            for (let i = 0; i < obj.x.length; ++i)
-              subtrees.appendChild(visit(obj.x[i]));
-          }
-          else if (obj['?'] === '+' || obj['?'] === '*' || obj['?'] === '?') {
-            label.innerText = obj['?'];
-            subtrees.appendChild(visit(obj.x));
-          }
-          else if (obj['?'] === '^' || obj['?'] === '$')
-            label.innerText = obj['?'];
-          else if (obj['?'] === '{n}') {
-            label.innerText = '{'+obj.n+'}';
-            subtrees.appendChild(visit(obj.x));
-          }
-          else if (obj['?'] === '{a,b}') {
-            label.innerText = '{'+obj.min+', '+obj.max+'}';
-            subtrees.appendChild(visit(obj.x));
-          }
-          else if (obj['?'] === '|') {
-            label.innerText = obj['?'];
-            subtrees.appendChild(visit(obj.a));
-            subtrees.appendChild(visit(obj.b));
-          }
-          else {
-            label.innerText = JSON.stringify(obj, null, 2);
-          }
-
-          if (subtrees.children.length) {
-            var subtreeOpen = true;
-
-            var caret = document.createElement('span');
-            caret.className = 'json-tree-caret';
-            caret.innerText = subtreeOpen ? '↓' : '→';
-            labelContainer.appendChild(caret);
-
-            caret.addEventListener('click', () => {
-              subtreeOpen = !subtreeOpen;
-
-              caret.innerText = subtreeOpen ? '↓' : '→';
-
-              if (subtreeOpen)
-                subtrees.classList.remove('json-tree-subtree-closed');
-              else
-                subtrees.classList.add('json-tree-subtree-closed');
-            });
-          }
-          labelContainer.appendChild(label);
-          res.appendChild(labelContainer);
-          res.appendChild(subtrees);
-
-          return res;
-        };
-
-        while (out.firstChild != null)
-          out.removeChild(out.firstChild);
-
-        out.appendChild(visit(obj.res));
-
-        sendOk(obj);
+      if (packet.data[field] == null) {
+        sendError('missing-body-field', field);
+        return false;
       }
-      else if (obj.action === 'err') {
-        if (obj.err == null) {
-          sendErr('regex-parser|recv|err|null-err');
-          return;
-        }
 
-        out.innerText = obj.err;
-        sendOk(obj);
-      }
-      else {
-        sendErr('regex-parser|recv|alien-action');
-      }
+      return true;
+    };
+
+    if (obj.type === 'ack') {
+      return;
     }
-    else if (obj['?'] === 'ok') {
-      // already logging everything
+    else if (obj.type === 'error') {
+      if (!requireBodyField(obj, 'id')) return;
+      if (!requireBodyField(obj, 'code')) return;
+      if (!requireBodyField(obj, 'etc')) return;
+
+      let msg = `Packet ${obj.data.id} caused ${obj.data.code}`;
+
+      if (obj.etc !== '')
+        msg += ` "${obj.data.etc}"`;
+
+      console.error(msg);
+
+      sendAck(obj);
+
+      return;
     }
-    else if (obj['?'] === 'err') {
-      console.log('ERR: ('+obj.code+') '+obj.msg);
+    else if (obj.type === 'ping') {
+      if (!requireBodyField(obj, 'message')) return;
+
+      send('pong', {id: obj.id, message: obj.data.message});
+      return;
     }
-    else {
-      sendErr('proto|recv|alien-packet');
+    else if (obj.type === 'pong') {
+      if (!requireBodyField(obj, 'message')) return;
+      console.log(`Pong! ${obj.data.message}`);
+
+      sendAck(obj);
+
+      return;
     }
+    else if (obj.type === 'progress') {
+      if (!requireBodyField(obj, 'id')) return;
+      if (!requireBodyField(obj, 'completeness')) return;
+
+      console.log(`${obj.data.id}: ${obj.data.completeness*100}%`);
+
+      sendAck(obj);
+
+      return;
+    }
+
+    sendError('no-such-packet');
   });
 });
