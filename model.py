@@ -66,10 +66,8 @@ if (sys.argv[2] == 'train'):
         #test_inference(model)
 
         for epoch in range(num_epochs):
-            print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-            print('-' * 10)
+            print('epoch {} {}'.format(epoch, num_epochs - 1))
 
-            
             model.train()
             running_loss = 0.0
             running_corrects = 0
@@ -98,20 +96,20 @@ if (sys.argv[2] == 'train'):
                         displayed = True
 
                     # backward + optimize only if in training phase
-                    
+
                     loss.backward()
                     optimizer.step()
 
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
-            
+
             scheduler.step()
 
             epoch_loss = running_loss / dataset_size
             epoch_acc = running_corrects.double() / dataset_size
 
-            print('Loss: {:.4f} Acc: {:.4f}'.format(epoch_loss, epoch_acc))
+            print('loss-acc {:.4f} {:.4f}'.format(epoch_loss, epoch_acc))
 
             losses.append(epoch_loss)
 
@@ -122,15 +120,10 @@ if (sys.argv[2] == 'train'):
                 torch.save(best_model_wts, save_path)
 
             if (len(losses) >= 4 and min(losses[-3:-1]) > losses[-4] * 0.95):
-                print("Early Stopping")
                 break
 
-            print()
-
         time_elapsed = time.time() - since
-        print('Training complete in {:.0f}m {:.0f}s'.format(
-            time_elapsed // 60, time_elapsed % 60))
-        print('Best Loss: {:4f}'.format(best_loss))
+        print('done {:f} {:4f}'.format(time_elapsed, best_loss))
 
         # load best model weights
         model.load_state_dict(best_model_wts)
@@ -163,7 +156,7 @@ if (sys.argv[2] == 'train'):
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=3, gamma=0.5)
 
     model_conv = train_model(model_conv, criterion, optimizer_conv,
-                             exp_lr_scheduler, num_epochs=25)
+                             exp_lr_scheduler, num_epochs=1)
 elif (sys.argv[2] == 'inference'):
 
     device = torch.device('cpu')
@@ -232,8 +225,7 @@ elif (sys.argv[2] == 'inference'):
             if (class_names[p].lower() in img_name.lower()):
                 correct += 1
                 correct_conf += c
-        print(f"ACCURACY: {correct * 100 / len(image_names):.2f}%")
-        print(f"AVG CORRECT CONFIDENCE: {correct_conf * 100 / correct:.2f}%")
+        print(f"accuracy {correct / len(image_names):.2f} {correct_conf / correct:.2f}")
         return processed
 
     class_names = json.load(open(class_names_path, "r"))
