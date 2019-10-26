@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import time
 import os
 import copy
+import json
+import sys
 
 data_transforms = {
     'train': transforms.Compose([
@@ -23,17 +25,30 @@ data_transforms = {
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
+    'test': transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
 }
 
 data_dir = 'data/hymenoptera_data'
 image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
                                           data_transforms[x])
-                  for x in ['train', 'val']}
+                  for x in ['train', 'val', 'test']}
 dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
                                              shuffle=True, num_workers=4)
               for x in ['train', 'val']}
+
+test_images = image_datasets['test']
+test_loader = torch.utils.data.DataLoader(test_images, batch_size=len(test_images),
+                                             shuffle=False, num_workers=4)
+
 dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
 class_names = image_datasets['train'].classes
+
+json.dump(class_names, open("class_names.json", "w"))
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -62,8 +77,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
-    torch.save(best_model_wts, "models/best_so_far")
+    if (len(sys.argv) == 1 or sys.argv[1] == "new"):
+        torch.save(best_model_wts, "models/best_so_far.pt")
+    elif (sys.argv[1] == "prev"):
+        model.load_state_dict(torch.load('models/best_so_far.pt'))
     best_acc = 0.0
+
+    #test_inference(model)
 
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -115,6 +135,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
+                torch.save(best_model_wts, "models/best_so_far.pt")
 
         print()
 
@@ -126,6 +147,31 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     # load best model weights
     model.load_state_dict(best_model_wts)
     return model
+'''
+def test_inference(model):
+    
+    #for inputs, labels in test_loader:
+
+    (inputs, labels) = iter(test_loader).next()
+
+    inputs = inputs.to(device)
+    labels = labels.to(device)
+
+    outputs = model(inputs)
+    _, preds = torch.max(outputs, 1)
+
+    print(os.listdir("data/hymenoptera_data/test/unlabeled"))
+    #print(os.listdir("data/hymenoptera_data/test/ants"))
+    #print(os.listdir("data/hymenoptera_data/test/bees"))
+    imshow(inputs[0])
+    time.sleep(1)
+    imshow(inputs[1])
+    time.sleep(1)
+    imshow(inputs[2])
+    time.sleep(1)
+    print(torch.mean(inputs))
+    print(preds)
+'''
 
 def visualize_model(model, num_images=6):
     was_training = model.training
@@ -213,3 +259,7 @@ exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=7, gamma=0.1)
 
 model_conv = train_model(model_conv, criterion, optimizer_conv,
                          exp_lr_scheduler, num_epochs=25)
+
+
+
+
