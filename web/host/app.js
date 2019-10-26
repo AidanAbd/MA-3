@@ -3,8 +3,8 @@ import path from 'path';
 import util from 'util';
 import child_process from 'child_process';
 import mkdirpCB from 'mkdirp';
-import del from 'del';
 
+import del from 'del';
 import Koa from 'koa';
 import koaBody from 'koa-body';
 import KoaLogger from 'koa-logger';
@@ -19,7 +19,7 @@ const execFile = util.promisify(child_process.execFile);
 const mkdirp = util.promisify(mkdirpCB);
 
 
-let sleep = (ms) => {
+const sleep = (ms) => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
@@ -76,6 +76,7 @@ app.use(async (ctx, next)=>{
     }
 
     await mkdirp(sess.workingSetPath);
+    await mkdirp(sess.labeledPathPrefix);
 
     const f = req.files['files[]'];
     await fs.promises.rename(f.path, sess.filePathFor(f.name));

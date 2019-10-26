@@ -1,3 +1,5 @@
+import prettyBytes from 'pretty-bytes';
+
 import {dom} from '../util/webDom';
 
 import * as ws from './ws';
@@ -46,18 +48,25 @@ nextBtn.addEventListener('click', () => {
   $('#error-alert').addClass('d-none');
   ws.setWorkingsetClassName(classNameField.value);
 
+  let totalSize = 0;
+  for (const f of fs) {
+    totalSize += f.size;
+  }
+
   const closeBtn = <button type='button' class='close'>&times;</button>.el;
+  const className = classNameField.value;
   const row =
     <tr>
       <td>{closeBtn}</td>
-      <td>{classNameField.value}</td>
+      <td>{className}</td>
       <td>{String(fs.length)}</td>
-      <td>10 MB</td>
+      <td>{prettyBytes(totalSize)}</td>
     </tr>.el;
 
   classTableBody.appendChild(row);
   closeBtn.addEventListener('click', () => {
     classTableBody.removeChild(row);
+    ws.removeClass(className);
   });
 
   classNameField.placeholder = `class-${++classnum}`;

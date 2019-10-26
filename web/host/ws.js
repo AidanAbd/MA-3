@@ -126,17 +126,23 @@ export const handleWs = (ws, sess) => {
     else if (obj.type === 'working-set-class') {
       if (!requireBodyField(obj, 'label')) return;
 
-      await sess.setWorkingClassLabel(obj.data.label);
+      await sess.setWorkingsetClassName(obj.data.label);
 
       sendAck(obj);
-
       return;
     }
     else if (obj.type === 'start-training') {
       await sess.startTraining();
 
       sendAck(obj);
+      return;
+    }
+    else if (obj.type === 'remove-class') {
+      if (!requireBodyField(obj, 'label')) return;
 
+      await sess.removeClass(obj.data.label);
+
+      sendAck(obj);
       return;
     }
 

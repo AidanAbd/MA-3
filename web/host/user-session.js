@@ -3,6 +3,7 @@ import util from 'util';
 import path from 'path';
 import child_process from 'child_process';
 
+import del from 'del';
 import jwt from 'jsonwebtoken';
 
 const spawn = util.promisify(child_process.spawn);
@@ -57,12 +58,16 @@ class Session {
   }
 
   async setWorkingsetClassName(label) {
-    await fs.promise.rename(this.workingSetPath, this.classPath(label));
+    await fs.promises.rename(this.workingSetPath, this.classPath(label));
   }
 
   async startTraining() {
     // this.cp = spawn(`python ${pyMLPath} ${this.labeledPathPrefix}`);
     console.log('beep boop training');
+  }
+
+  async removeClass(label) {
+    await del(this.classPath(label));
   }
 }
 
