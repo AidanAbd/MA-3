@@ -54,8 +54,10 @@ if (sys.argv[2] == 'train'):
     def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
         since = time.time()
 
+        save_path = f"models/{sys.argv[3]}_params.pt"
+
         best_model_wts = copy.deepcopy(model.state_dict())
-        torch.save(best_model_wts, "models/best_so_far.pt")
+        torch.save(best_model_wts, save_path)
         best_loss = None
 
         losses = []
@@ -70,7 +72,7 @@ if (sys.argv[2] == 'train'):
             model.train()
             running_loss = 0.0
             running_corrects = 0
-            displayed = True if (len(sys.argv) >= 4 and sys.argv[3] == 'nd') else False
+            displayed = True if (len(sys.argv) >= 5 and sys.argv[4] == 'nd') else False
 
             # Iterate over data.
             for inputs, labels in dataloader:
@@ -116,7 +118,7 @@ if (sys.argv[2] == 'train'):
             if best_loss is None or epoch_loss < best_loss:
                 best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
-                torch.save(best_model_wts, "models/best_so_far.pt")
+                torch.save(best_model_wts, save_path)
 
             if (len(losses) >= 4 and min(losses[-3:-1]) > losses[-4] * 0.95):
                 print("Early Stopping")
@@ -165,6 +167,8 @@ elif (sys.argv[2] == 'inference'):
 
     device = torch.device('cpu')
 
+    load_path = f"models/{sys.argv[3]}_params.pt"
+
     fp = sys.argv[1]
 
     def load_model(num_classes):
@@ -184,7 +188,7 @@ elif (sys.argv[2] == 'inference'):
 
         model_conv = model_conv.to(device)
 
-        model_conv.load_state_dict(torch.load('models/best_so_far.pt'))
+        model_conv.load_state_dict(torch.load(load_path))
         return model_conv
 
     def load_data(path):
