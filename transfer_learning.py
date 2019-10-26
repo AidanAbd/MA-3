@@ -77,7 +77,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
-    if (len(sys.argv[1]) == 1 or sys.argv[1] == "new"):
+    if (len(sys.argv) == 1 or sys.argv[1] == "new"):
         torch.save(best_model_wts, "models/best_so_far.pt")
     elif (sys.argv[1] == "prev"):
         model.load_state_dict(torch.load('models/best_so_far.pt'))
