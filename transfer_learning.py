@@ -73,6 +73,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
+    torch.save(best_model_wts, "models/best_so_far")
     best_acc = 0.0
 
     test_inference(model)
