@@ -123,6 +123,15 @@ export const handleWs = (ws, sess) => {
 
       return;
     }
+    else if (obj.type === 'working-set-class') {
+      if (!requireBodyField(obj, 'label')) return;
+
+      await sess.setWorkingClassLabel(obj.data.label);
+
+      sendAck(obj);
+
+      return;
+    }
 
     sendError('no-such-packet');
   });

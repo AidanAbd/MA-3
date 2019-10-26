@@ -14,6 +14,7 @@ module.exports = {
   output: {
     path: p('dist'),
   },
+  devtool: mode === 'production' ? null : 'eval-source-map',
   mode,
   plugins: [
     new HtmlWebpackPlugin({
