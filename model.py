@@ -5,13 +5,14 @@ from torch.optim import lr_scheduler
 import numpy as np
 import torchvision
 from torchvision import datasets, models, transforms
+from PIL import Image
 import time
 import os
 import copy
 import json
 import sys
 
-if (sys.argv[2] == 'train'):
+if (sys.argv[1] == 'train'):
 
     data_transform = transforms.Compose(
             [transforms.RandomApply([
@@ -24,7 +25,7 @@ if (sys.argv[2] == 'train'):
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
-    fp = sys.argv[1]
+    fp = sys.argv[2]
     data_dir = fp
     image_dataset = datasets.ImageFolder(data_dir, data_transform)
     dataloader = torch.utils.data.DataLoader(image_dataset, batch_size=4, shuffle=True, num_workers=4)
@@ -137,14 +138,11 @@ if (sys.argv[2] == 'train'):
 
     model_conv = train_model(model_conv, criterion, optimizer_conv,
                              exp_lr_scheduler, num_epochs=25)
-elif (sys.argv[2] == 'inference'):
-
+elif (sys.argv[1] == 'infer'):
     device = torch.device('cpu')
 
-    load_path = f"models/{sys.argv[3]}_params.pt"
-    class_names_path = f"class_names/{sys.argv[3]}_classes.json"
-
-    fp = sys.argv[1]
+    load_path = f"models/{sys.argv[2]}_params.pt"
+    class_names_path = f"class_names/{sys.argv[2]}_classes.json"
 
     def load_model(num_classes):
         custom_num_classes = num_classes
@@ -173,47 +171,31 @@ elif (sys.argv[2] == 'inference'):
                             transforms.ToTensor(),
                             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
-        test_images = datasets.ImageFolder(path, data_transforms)
-        test_loader = torch.utils.data.DataLoader(test_images, batch_size=len(test_images),
-                                                 shuffle=False, num_workers=4)
+        image = Image.open(path)
+        image = data_transforms(image)
+        image = image.unsqueeze(0)
 
-        dataiter = iter(test_loader)
-        images, labels = dataiter.next()
-        #imshow(torchvision.utils.make_grid(images))
-
-        return images
+        return image
 
 
-    def inference(model, images):
+    def inference(model, image):
         model.eval()
-        outputs = model(images)
+        outputs = model(image)
         _, predicted = torch.max(outputs, 1)
         exp_outputs = np.exp(outputs.detach().numpy())
         normed_outputs = exp_outputs / np.sum(exp_outputs, axis = 1, keepdims = True)
-        confidences = [normed_outputs[i][predicted[i]] for i in range(len(images))]
-        return {"classes": predicted.numpy(), "confidences": confidences}
-
-    def post_process(predictions, path):
-        is_letter = lambda c: ord(c.lower()) >= ord('a') and ord(c.lower()) <= ord('z')
-        image_names = sorted([p for p in os.listdir(path) if is_letter(p[0])])
-
-        processed = dict()
-        correct = 0
-        correct_conf = 0
-        for img_name, p, c in zip(image_names, predictions["classes"], predictions["confidences"]):
-            processed[img_name] = class_names[p]
-            if (class_names[p].lower() in img_name.lower()):
-                correct += 1
-                correct_conf += c
-        print(f"accuracy {correct / len(image_names):.2f} {correct_conf / correct:.2f}")
-        return processed
+        return predicted.numpy()[0], normed_outputs[0][predicted[0]]
 
     class_names = json.load(open(class_names_path, "r"))
     model = load_model(len(class_names))
-    images = load_data(fp)
-    predictions= inference(model, images)
-    print(post_process(predictions, fp))
 
+    for line in sys.stdin:
+        path = line.rstrip()
 
+        image = load_data(path)
+        prediction, confidence = inference(model, image)
+        print(f'res {path} {class_names[prediction]} {confidence}', flush=True)
 
-
+        sys.stdout.flush()
+else:
+    print('Unknown command', flush=True)

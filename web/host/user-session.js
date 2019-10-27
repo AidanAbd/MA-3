@@ -62,21 +62,19 @@ class Session {
   }
 
   async startTraining() {
-    this.cp = await child_process.spawn(
+    const proc = child_process.spawn(
       'python3',
       [
         'model.py',
-        path.join('..', this.labeledPathPrefix),
         'train',
+        path.join('..', this.labeledPathPrefix),
         this.id,
-        'nd'
       ],
       {
         cwd: './ml'
       }
     );
-    this.cp.stderr.pipe(process.stderr);
-    this.cp.stdout.on('data', (d) => {
+    proc.stdout.on('data', (d) => {
       const args = d.toString().trim().split(' ');
 
       if (args[0] === 'epoch') {
@@ -90,6 +88,8 @@ class Session {
 
       console.log(`Got weird response from model.py: "${args.join(' ')}"`);
     });
+
+    await del(this.workingSetPath);
   }
 
   async removeClass(label) {
@@ -97,6 +97,8 @@ class Session {
   }
 
   async cleanup() {
+    this.cp.kill();
+
     const actions = [
       del(path.join('./ml', 'class_names', this.id+'_classes.json')),
       del(path.join('./ml', 'models', this.id+'_params.pt')),
@@ -104,6 +106,43 @@ class Session {
     ];
 
     await Promise.all(actions);
+  }
+
+  inferFile(filename) {
+    if (this.cp == null) {
+      this.cp = child_process.spawn(
+        'python3',
+        [
+          'model.py',
+          'infer',
+          this.id
+        ],
+        {
+          cwd: './ml'
+        }
+      );
+
+      this.cp.on('error', (err) => {
+        console.error('Failed to start subprocess. '+err);
+      });
+
+      this.cp.stderr.pipe(process.stderr);
+      this.cp.stdout.on('data', (d) => {
+        const args = d.toString().trim().split(' ');
+
+        if (args[0] === 'debug') {
+          console.log(args.join(' '));
+          return;
+        }
+        else if (args[0] === 'res') {
+          this.ws.sendInferenceResult(path.basename(args[1]), args[2], args[3]);
+          return;
+        }
+
+        console.log(`Got weird response from model.py: "${args.join(' ')}"`);
+      });
+    }
+    this.cp.stdin.write(path.join('..', this.filePathFor(filename))+'\n');
   }
 }
 

@@ -26,6 +26,11 @@ export const setProgressCb = (cb) => {
   progressCb = cb;
 };
 
+let inferenceCb = null;
+export const setInferenceCB = (cb) => {
+  inferenceCb = cb;
+};
+
 export let setWorkingsetClassName = null;
 export let startTraining = null;
 export let removeClass = null;
@@ -134,11 +139,20 @@ ws.addEventListener('open', () => {
     else if (obj.type === 'auth-response') {
       if (!requireBodyField(obj, 'payload')) return;
 
-      console.log('auth');
       uppy.setMeta({payload: obj.data.payload});
 
       sendAck(obj);
 
+      return;
+    }
+    else if (obj.type === 'inference-result') {
+      if (!requireBodyField(obj, 'filename')) return;
+      if (!requireBodyField(obj, 'label')) return;
+      if (!requireBodyField(obj, 'confidence')) return;
+
+      inferenceCb(obj.data.filename, obj.data.label, obj.data.confidence);
+
+      sendAck(obj);
       return;
     }
 

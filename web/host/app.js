@@ -19,11 +19,6 @@ const execFile = util.promisify(child_process.execFile);
 const mkdirp = util.promisify(mkdirpCB);
 
 
-const sleep = (ms) => {
-  return new Promise(resolve => setTimeout(resolve, ms));
-};
-
-
 const distPath = fs.realpathSync(path.join(__dirname, '../web/dist'));
 
 const app = new Koa();
@@ -81,7 +76,37 @@ app.use(async (ctx, next)=>{
     const f = req.files['files[]'];
     await fs.promises.rename(f.path, sess.filePathFor(f.name));
 
-    // await sleep(10000);
+    ctx.body = '{}';
+
+    return;
+  }
+
+  if (ctx.path === '/upload-inference-image') {
+    await koaBodyMW.call(this, ctx, next);
+
+    const req = ctx.request;
+
+    if (req.body.payload == null) {
+      ctx.status = 400;
+      return;
+    }
+    if (req.files == null) {
+      ctx.status = 400;
+      return;
+    }
+
+    const sess = await getSession(req.body.payload);
+
+    if (sess == null) {
+      ctx.status = 403;
+      return;
+    }
+
+    await mkdirp(sess.workingSetPath);
+
+    const f = req.files['files[]'];
+    await fs.promises.rename(f.path, sess.filePathFor(f.name));
+    sess.inferFile(f.name);
 
     ctx.body = '{}';
 

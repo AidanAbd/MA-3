@@ -155,6 +155,11 @@ export const handleWs = (ws, sess) => {
   sess.setWS({
     sendProgress: (completeness) => {
       send('progress', {completeness});
+    },
+    sendInferenceResult: (filename, label, confidence) => {
+      send('inference-result', {
+        filename, label, confidence
+      });
     }
   });
 };
