@@ -5,7 +5,6 @@ from torch.optim import lr_scheduler
 import numpy as np
 import torchvision
 from torchvision import datasets, models, transforms
-import matplotlib.pyplot as plt
 import time
 import os
 import copy
@@ -39,18 +38,6 @@ if (sys.argv[2] == 'train'):
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    def imshow(inp, title=None):
-        """Imshow for Tensor."""
-        inp = inp.numpy().transpose((1, 2, 0))
-        mean = np.array([0.485, 0.456, 0.406])
-        std = np.array([0.229, 0.224, 0.225])
-        inp = std * inp + mean
-        inp = np.clip(inp, 0, 1)
-        plt.imshow(inp)
-        if title is not None:
-            plt.title(title)
-        plt.pause(0.001)  # pause a bit so that plots are updated
-
 
     def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
         since = time.time()
@@ -71,15 +58,11 @@ if (sys.argv[2] == 'train'):
             model.train()
             running_loss = 0.0
             running_corrects = 0
-            displayed = True if (len(sys.argv) >= 5 and sys.argv[4] == 'nd') else False
 
             # Iterate over data.
             for inputs, labels in dataloader:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
-
-                if (not displayed):
-                    imgs = torchvision.utils.make_grid(inputs)
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -90,10 +73,6 @@ if (sys.argv[2] == 'train'):
                     outputs = model(inputs)
                     _, preds = torch.max(outputs, 1)
                     loss = criterion(outputs, labels)
-
-                    if (not displayed):
-                        imshow(imgs, title=[class_names[x] for x in preds])
-                        displayed = True
 
                     # backward + optimize only if in training phase
 
