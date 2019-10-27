@@ -171,7 +171,7 @@ elif (sys.argv[1] == 'infer'):
                             transforms.ToTensor(),
                             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
-        image = Image.open(path)
+        image = Image.open(path).convert('RGB')
         image = data_transforms(image)
         image = image.unsqueeze(0)
 

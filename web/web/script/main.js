@@ -147,7 +147,7 @@ try {
               return;
 
             const pad1 = <div class='col-sm-05'/>.el;
-            const card = <div class='col-sm-3 card'>
+            const card = <div class='col-sm-3 card inference-card'>
               <div class='square'>
                 <div class='inference-image-container'>
                   <img class='card-img-top inference-image' src={file.preview}/>

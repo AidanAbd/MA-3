@@ -115,12 +115,12 @@ export default () => {
                     <hr/>
                   </div>
                 </div>
-                <div class='row height-1em'/>
                 <div class='row'>
                   <div class='col-12'>
                     <div id='drag-drop-area-inference'/>
                   </div>
                 </div>
+                <div class='row height-1em'/>
                 <div class='row' id='inference-results-box'>
                 </div>
               </div>
