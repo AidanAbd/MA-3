@@ -19,12 +19,17 @@ export default () => {
     <html lang='en'>
       <head>
         <meta charset='utf-8'/>
-        <title>MA-3</title>
+        <title>Flash Computer Vision</title>
         <meta name='description' content=''/>
         <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'/>
 
-        {/*<link rel="manifest" href="site.webmanifest"/>
-        <link rel="apple-touch-icon" href="icon.png"/>*/}
+        <link rel='apple-touch-icon' sizes='180x180' href='/apple-touch-icon.png'/>
+        <link rel='icon' type='image/png' sizes='32x32' href='/favicon-32x32.png'/>
+        <link rel='icon' type='image/png' sizes='16x16' href='/favicon-16x16.png'/>
+        <link rel='manifest' href='/site.webmanifest'/>
+        <link rel='mask-icon' href='/safari-pinned-tab.svg' color='#d1a830'/>
+        <meta name='msapplication-TileColor' content='#fec00a'/>
+        <meta name='theme-color' content='#fec00a'/>
 
         <link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'/>
 
@@ -46,64 +51,71 @@ export default () => {
           </div>
           <div id='sample-collector'>
             <div class='row'>
-              <div class='col-md-6 offset-md-3'>
-                <h2>Add Samples</h2>
+              <div class='col-md-3'>
+                <img src={require('../res/img/sidebar.svg')}/>
               </div>
-            </div>
-            <div class='row'>
-              <div class='col-md-2 offset-md-3'>
-                <label>Class label:</label>
-                <div class='input-group'>
-                  <input id='class-name-in' class='form-control' type='text' placeholder='class-1'/>
+              <div class='col-md-6'>
+                <div class='row'>
+                  <div class='col-12'>
+                    <h2>Add Samples</h2>
+                  </div>
                 </div>
-                <div class='height-1em'/>
-                <button type='button' class='w-100 btn btn-primary' id='next-btn'>Add to set</button>
-                <div class='height-1em'/>
-                <div class='alert alert-danger d-none' id='add-class-error-alert'/>
-                <table class='table table-sm'>
-                  <thead>
-                    <tr>
-                      <th></th>
-                      <th>Class</th>
-                      <th>#</th>
-                      <th>Total Size</th>
-                    </tr>
-                  </thead>
-                  <tbody class='overflow-auto' id='class-table-body'/>
-                </table>
+                <div class='row'>
+                  <div class='col-md-7'>
+                    <label>Class label:</label>
+                    <div class='input-group'>
+                      <input id='class-name-in' class='form-control' type='text' placeholder='class-1'/>
+                    </div>
+                    <div class='height-1em'/>
+                    <button type='button' class='w-100 btn btn-primary' id='next-btn'>Add to set</button>
+                    <div class='height-1em'/>
+                    <div class='alert alert-danger d-none' id='add-class-error-alert'/>
+                    <table class='table table-sm'>
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Class</th>
+                          <th>#</th>
+                          <th>Total Size</th>
+                        </tr>
+                      </thead>
+                      <tbody class='overflow-auto' id='class-table-body'/>
+                    </table>
+                  </div>
+                  <div class='col-md-5'>
+                    <div id='drag-drop-area'/>
+                  </div>
+                </div>
+                <div class='row'>
+                  <div class='col-12'>
+                    <hr class='w-100'/>
+                  </div>
+                </div>
+                <div class='row' id='training-progress-box' class='d-none'>
+                  <div class='col-12'>
+                    <div class='progress height-3em'>
+                      <div class='progress-bar' id='training-progress-bar'/>
+                    </div>
+                  </div>
+                </div>
+                <div id='start-training-box'>
+                  <div class='row height-1em'/>
+                  <div class='row justify-content-center'>
+                    <button type='button' class='btn btn-primary' id='train-btn'>Start training</button>
+                  </div>
+                  <div class='row height-1em'/>
+                  <div class='row justify-content-center'>
+                    <div class='alert alert-danger d-none' id='start-training-error-alert'/>
+                  </div>
+                </div>
+                <div class='row height-1em'/>
+                <div class='row'>
+                  <div class='col-12'>
+                    <h1>Inference</h1>
+                    <hr/>
+                  </div>
+                </div>
               </div>
-              <div class='col-md-4'>
-                <div id='drag-drop-area'/>
-              </div>
-            </div>
-            <div class='row'>
-              <div class='col-md-6 offset-md-3'>
-                <hr class='w-100'/>
-              </div>
-            </div>
-          </div>
-          <div class='row' id='training-progress-box' class='d-none'>
-            <div class='col-md-6 offset-md-3'>
-              <div class='progress height-3em'>
-                <div class='progress-bar' id='training-progress-bar'/>
-              </div>
-            </div>
-          </div>
-          <div id='start-training-box'>
-            <div class='row height-1em'/>
-            <div class='row justify-content-center'>
-              <button type='button' class='btn btn-primary' id='train-btn'>Start training</button>
-            </div>
-            <div class='row height-1em'/>
-            <div class='row justify-content-center'>
-              <div class='alert alert-danger d-none' id='start-training-error-alert'/>
-            </div>
-          </div>
-          <div class='row height-1em'/>
-          <div class='row'>
-            <div class='col-md-6 offset-md-3'>
-              <h1>Inference</h1>
-              <hr/>
             </div>
           </div>
         </div>

@@ -2,12 +2,22 @@ import fs from 'fs';
 import path from 'path';
 
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-
-import postcssNormalize from 'postcss-normalize';
+import SymlinkWebpackPlugin from 'symlink-webpack-plugin';
 
 const p = x => path.resolve(__dirname, x);
 
 const mode = fs.existsSync(p('devlock')) ? 'development' : 'production';
+
+const favPath = p('./res/favicons');
+
+for (const f of fs.readdirSync(favPath)) {
+  try {
+    fs.symlinkSync(path.join(favPath, f), path.join(p('dist'), f));
+  }
+  catch (e) {
+    // ignore
+  }
+}
 
 module.exports = {
   entry: p('script/main.js'),
@@ -105,6 +115,14 @@ module.exports = {
               plugins: () => [
               ]
             }
+          }
+        ]
+      },
+      {
+        test: /\.svg/,
+        use: [
+          {
+            loader: 'file-loader'
           }
         ]
       }
